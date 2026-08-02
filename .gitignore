@@ -1,0 +1,13 @@
+# FAIOS Security Ignore Vault
+.env
+*.env
+credentials/
+*.json
+!package.json
+!tsconfig.json
+*.key
+*.pem
+temp_media/
+avatar_assets/
+__pycache__/
+*.pyc

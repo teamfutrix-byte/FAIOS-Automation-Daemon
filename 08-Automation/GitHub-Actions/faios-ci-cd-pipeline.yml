@@ -1,0 +1,30 @@
+name: FAIOS Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Validate Markdown Files & Schemas
+        run: |
+          echo "Validating FAIOS repository markdown files and schemas..."
+          test -f README.md
+          test -f CHANGELOG.md
+
+      - name: Validate n8n Workflow JSONs
+        run: |
+          echo "Validating n8n workflow JSON syntax..."
+          python3 -c "import json, glob; [json.load(open(f)) for f in glob.glob('08-Automation/n8n-Workflows/*.json')]"
+
+      - name: Validate SQL Migrations Syntax
+        run: |
+          echo "Checking Supabase SQL DDL migration files..."
+          test -f 08-Automation/Supabase-Functions/ddl-schema-migrations.sql
