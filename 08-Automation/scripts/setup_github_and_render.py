@@ -64,7 +64,6 @@ def create_private_github_repo():
 def push_code_to_github():
     remote_url = f"https://{GH_TOKEN}@github.com/{GH_USERNAME}/{REPO_NAME}.git"
     
-    # Run git commands in ROOT_DIR
     def run_git(cmd):
         res = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True, shell=True)
         print(f"[GIT EXEC: {' '.join(cmd)}] Output:", res.stdout.strip() or res.stderr.strip())
@@ -75,10 +74,10 @@ def push_code_to_github():
     run_git(["git", "config", "user.email", "teamfutrix@gmail.com"])
     run_git(["git", "branch", "-M", "main"])
     
-    # Remove existing remote if present, then add
     subprocess.run(["git", "remote", "remove", "origin"], cwd=ROOT_DIR, capture_output=True)
     run_git(["git", "remote", "add", "origin", remote_url])
 
+    run_git(["git", "rm", "-r", "--cached", ".github"])
     run_git(["git", "add", "."])
     run_git(["git", "commit", "-m", "FAIOS v46.0 Master Production Pipeline & Cloud Automation Suite"])
     res_push = run_git(["git", "push", "-u", "origin", "main", "--force"])

@@ -11,3 +11,4 @@ temp_media/
 avatar_assets/
 __pycache__/
 *.pyc
+.github/workflows/
