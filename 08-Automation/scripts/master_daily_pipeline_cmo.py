@@ -13,7 +13,8 @@ Features:
 3. Updated Exam Cycle Focus: Targets NEET 2027 & JEE 2027/2028 Aspirants.
 """
 
-import sys, os, time, json, urllib.request, urllib.parse, asyncio, base64, requests
+import sys, os, time, json, urllib.request, urllib.parse, asyncio, base64, requests, threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from graphic_card_renderer import (
     render_playwright_carousel_deck,
     render_blog_post_image,
@@ -487,5 +488,24 @@ def poll_telegram_updates():
 
         time.sleep(1)
 
+def run_health_server():
+    """Simple HTTP health check server to keep Render free plan awake."""
+    port = int(os.getenv('PORT', 10000))
+    class HealthHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'FAIOS Bot is LIVE and running 24/7!')
+        def log_message(self, format, *args):
+            pass  # Suppress HTTP logs
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    print(f'[HEALTH SERVER] Listening on port {port}')
+    server.serve_forever()
+
 if __name__ == '__main__':
+    # Start keep-alive HTTP server in background thread (prevents Render free plan sleep)
+    health_thread = threading.Thread(target=run_health_server, daemon=True)
+    health_thread.start()
+    print('[STARTUP] Keep-alive health server started. Bot is now 24/7 live on Render!')
     poll_telegram_updates()

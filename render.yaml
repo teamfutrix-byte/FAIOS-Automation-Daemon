@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: faios-daemon-247
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r 08-Automation/scripts/requirements.txt && python -m playwright install chromium --with-deps"
+    startCommand: "python 08-Automation/scripts/master_daily_pipeline_cmo.py"
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        value: 8850369070:AAHe3J6Nz4Ci9OJy1qyMFcryMvCYeUzXYCs
+      - key: FOUNDER_TELEGRAM_CHAT_ID
+        value: "8519187268"
+      - key: GOOGLE_APPS_SCRIPT_WEBAPP_URL
+        value: https://script.google.com/macros/s/AKfycbz3xsvR9nA4veqwIJ4zLfwsN9G6QAerAMFeIUl2T5p7a4ay8fYqePtFBnN0aMtJxk7IQQ/exec
+      - key: PYTHONUNBUFFERED
+        value: "1"
