@@ -233,7 +233,7 @@ def dispatch_full_5_slide_carousel(target_chat_id=None):
     # CLOUD ANTI-DUPLICATE: Log immediately after generation
     log_used_topic_to_sheets(selected_pillar['sub_topic_id'], 'carousel')
 
-    asset_id = f"carousel_{selected_pillar['sub_topic_id']}_{int(time.time())}"
+    asset_id = f"carousel_{int(time.time()) % 1000000}"
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': slide_paths,
@@ -276,7 +276,7 @@ def dispatch_blog_post(topic_str="", target_chat_id=None):
     if used_sub_topic_id:
         log_used_topic_to_sheets(used_sub_topic_id, 'blog')
 
-    asset_id = f"blog_{used_sub_topic_id}_{int(time.time())}"
+    asset_id = f"blog_{int(time.time()) % 1000000}"
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': [header_img_path],
@@ -352,7 +352,7 @@ def dispatch_single_card_format(fmt_name, async_render_func, target_chat_id=None
     else:
         hashtags_str = f"{subject_tags} #Futrix #EdTech #StudySmart #ExamPrep"
 
-    asset_id = f"{fmt_name}_{used_sub_topic_id}_{int(time.time())}"
+    asset_id = f"{fmt_name}_{int(time.time()) % 1000000}"
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': [card_path],
