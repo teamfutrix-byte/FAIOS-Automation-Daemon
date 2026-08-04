@@ -238,14 +238,14 @@ def dispatch_full_5_slide_carousel(target_chat_id=None):
         'asset_id': asset_id,
         'slides': slide_paths,
         'pdf': pdf_path,
-        'title': selected_pillar['topic'],
+        'title': selected_pillar.get('title', 'FUTRIX Carousel'),
         'caption': selected_pillar['caption'],
         'hashtags': selected_pillar['hashtags']
     }
 
     send_telegram_message(f"<b>🎨 AI CMO APPROVED: RENDERED FRESH 5-SLIDE CAROUSEL</b>\n\n"
-                          f"• <b>Chapter:</b> {selected_pillar.get('chapter', 'Physics')}\n"
-                          f"• <b>Topic:</b> {selected_pillar['topic']}\n"
+                          f"• <b>Chapter:</b> {selected_pillar.get('chapter', 'Syllabus Topic')}\n"
+                          f"• <b>Topic:</b> {selected_pillar.get('title', 'FUTRIX Concept')}\n"
                           f"• <b>Content Pillar:</b> {selected_pillar['badge']}\n"
                           f"• <b>Cloud Anti-Duplicate Check:</b> PASSED ✅\n\n"
                           f"Uploading 5 Graphic Slide Cards below...", target_chat_id=target_chat_id)
@@ -254,7 +254,7 @@ def dispatch_full_5_slide_carousel(target_chat_id=None):
         send_telegram_single_photo(path, f"<b>Slide {idx}/5</b>: {selected_pillar['badge']}", target_chat_id=target_chat_id)
 
     caption_slide5 = f"<b>Slide 5/5</b>: Launch Call to Action\n\n" \
-                     f"<b>{selected_pillar['topic']}</b>\n\n" \
+                     f"<b>{selected_pillar.get('title', 'FUTRIX Concept')}</b>\n\n" \
                      f"Review all 5 graphic slide cards above. Tap below to approve:"
 
     reply_markup = {
