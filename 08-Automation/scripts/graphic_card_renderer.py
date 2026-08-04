@@ -437,24 +437,30 @@ async def render_blog_post_image(topic_str="", past_topics=None):
 
 async def render_quiz_question_card(past_topics=None):
     item = select_non_duplicate_item(QUIZ_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]
 
 async def render_formula_cheatsheet_card(past_topics=None):
     item = select_non_duplicate_item(FORMULA_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]
 
 async def render_meme_card(past_topics=None):
     item = select_non_duplicate_item(MEME_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]
 
 async def render_roadmap_card(past_topics=None):
     item = select_non_duplicate_item(ROADMAP_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]
 
 async def render_news_alert_card(past_topics=None):
     item = select_non_duplicate_item(NEWS_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]
 
 async def render_casestudy_card(past_topics=None):
     item = select_non_duplicate_item(CASESTUDY_POOLS, past_topics)
-    return render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    return path, item["sub_topic_id"]

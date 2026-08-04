@@ -1,5 +1,9 @@
 /**
- * FAIOS Enterprise Google Apps Script Database Engine v32.0 (Multi-Tab Topic Verification Standard)
+ * FAIOS Enterprise Google Apps Script Database Engine v33.0
+ * CLOUD-PERSISTENT ANTI-DUPLICATE ENGINE
+ * - Dedicated "Used_Topic_IDs" tab for 100% duplicate prevention across Render restarts
+ * - LOG_USED_TOPIC action: writes sub_topic_id to cloud sheet
+ * - GET_PAST_TOPICS now returns actual sub_topic_ids (not captions)
  * MUST REPLACE ALL CODE IN APPS SCRIPT EDITOR!
  */
 
@@ -16,29 +20,87 @@ function doPost(e) {
 
     const action = data.action;
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    // Setup 9-Column Headers on Sheets
     setupSheetHeaders(ss);
 
     let scheduledSheet = ss.getSheetByName("Scheduled_Posts") || ss.getSheets()[0];
 
-    // GET_PAST_TOPICS: Scans ALL tabs (Scheduled_Posts, Published_Posts, System_Approvals) for 100% Anti-Duplicate Protection!
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET_PAST_TOPICS: Returns ACTUAL sub_topic_ids from Used_Topic_IDs sheet
+    // (cloud-persistent, survives Render restarts)
+    // ─────────────────────────────────────────────────────────────────────────
     if (action === "GET_PAST_TOPICS") {
-      let topics = [];
+      let usedIds = [];
+
+      // Primary: Read from dedicated Used_Topic_IDs tab (sub_topic_id column)
+      let usedSheet = ss.getSheetByName("Used_Topic_IDs");
+      if (usedSheet && usedSheet.getLastRow() > 1) {
+        let vals = usedSheet.getRange(2, 1, usedSheet.getLastRow() - 1, 1).getValues();
+        for (let i = 0; i < vals.length; i++) {
+          if (vals[i][0]) usedIds.push(String(vals[i][0]).trim().toLowerCase());
+        }
+      }
+
+      // Fallback: Also read captions from Scheduled_Posts & Published_Posts
+      // (for backward compatibility with old records)
       let allSheets = ss.getSheets();
       for (let s = 0; s < allSheets.length; s++) {
         let sheet = allSheets[s];
-        if (sheet.getLastRow() > 1) {
-          let values = sheet.getRange(2, 5, sheet.getLastRow() - 1, 1).getValues();
-          for (let i = 0; i < values.length; i++) {
-            if (values[i][0]) topics.push(values[i][0]);
+        let name = sheet.getName();
+        if ((name === "Scheduled_Posts" || name === "Published_Posts") && sheet.getLastRow() > 1) {
+          let vals = sheet.getRange(2, 5, sheet.getLastRow() - 1, 1).getValues();
+          for (let i = 0; i < vals.length; i++) {
+            if (vals[i][0]) usedIds.push(String(vals[i][0]).toLowerCase());
           }
         }
       }
-      return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", topics: topics }))
+
+      return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", topics: usedIds }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOG_USED_TOPIC: Write sub_topic_id to Used_Topic_IDs tab after generation
+    // Called every time content is generated - ensures 100% cloud persistence
+    // ─────────────────────────────────────────────────────────────────────────
+    if (action === "LOG_USED_TOPIC") {
+      let sub_topic_id = data.sub_topic_id;
+      let format_type = data.format_type || "unknown";
+      if (!sub_topic_id) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "sub_topic_id required" }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      let usedSheet = ss.getSheetByName("Used_Topic_IDs");
+      if (!usedSheet) {
+        usedSheet = ss.insertSheet("Used_Topic_IDs");
+        usedSheet.getRange(1, 1, 1, 3).setValues([["Sub Topic ID", "Format Type", "Generated At"]]);
+        usedSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#7C3AED").setFontColor("#FFFFFF");
+      }
+
+      // Check if already exists (avoid even logging duplicates)
+      let alreadyLogged = false;
+      if (usedSheet.getLastRow() > 1) {
+        let existing = usedSheet.getRange(2, 1, usedSheet.getLastRow() - 1, 1).getValues();
+        for (let i = 0; i < existing.length; i++) {
+          if (String(existing[i][0]).trim().toLowerCase() === sub_topic_id.trim().toLowerCase()) {
+            alreadyLogged = true;
+            break;
+          }
+        }
+      }
+
+      if (!alreadyLogged) {
+        let timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+        usedSheet.appendRow([sub_topic_id, format_type, timestamp]);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", logged: !alreadyLogged, sub_topic_id: sub_topic_id }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADD_SCHEDULED_POST
+    // ─────────────────────────────────────────────────────────────────────────
     if (action === "ADD_SCHEDULED_POST") {
       let driveUrl = "";
 
@@ -66,23 +128,25 @@ function doPost(e) {
       const clickableFormula = driveUrl.startsWith("http") ? `=HYPERLINK("${driveUrl}", "View File in Google Drive 📁")` : driveUrl;
       const createdTimeStr = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
 
-      // EXACT 9 ELEMENTS IN APPEND ROW!
       scheduledSheet.appendRow([
-        data.post_id,                                                      // 1. Post ID
-        createdTimeStr,                                                   // 2. Created Date & Time
-        data.platform,                                                    // 3. Platform
-        data.post_time,                                                   // 4. Scheduled Post Time
-        data.caption,                                                     // 5. Viral Reach Caption
-        data.hashtags || "#NEET2026 #JEE2026 #FutrixAI #EdTech #StudySmart", // 6. 5 Viral Hashtags
-        clickableFormula,                                                 // 7. Google Drive Media Link
-        data.approval_status || "APPROVED",                               // 8. Approval Status
-        false                                                             // 9. Published
+        data.post_id,
+        createdTimeStr,
+        data.platform,
+        data.post_time,
+        data.caption,
+        data.hashtags || "#NEET2027 #JEE2027 #FutrixAI #EdTech #StudySmart",
+        clickableFormula,
+        data.approval_status || "APPROVED",
+        false
       ]);
 
       return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", post_id: data.post_id, drive_url: driveUrl }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // MARK_AS_PUBLISHED
+    // ─────────────────────────────────────────────────────────────────────────
     if (action === "MARK_AS_PUBLISHED") {
       let publishedSheet = ss.getSheetByName("Published_Posts") || ss.insertSheet("Published_Posts");
       let postIdToPublish = data.post_id;
@@ -93,21 +157,12 @@ function doPost(e) {
       for (let i = 1; i < rows.length; i++) {
         if (rows[i][0] === postIdToPublish) {
           let rowData = rows[i];
-          
           publishedSheet.appendRow([
-            rowData[0], // Post ID
-            rowData[1], // Created Date & Time
-            rowData[2], // Platform
-            publishedTimestamp, // Actual Published Date & Time
-            rowData[4], // Viral Reach Caption
-            rowData[5], // 5 Viral Hashtags
-            rowData[6], // Google Drive Media Link
-            "PUBLISHED", // Status
-            data.live_post_url || "https://instagram.com/futrix" // Live Post Link
+            rowData[0], rowData[1], rowData[2], publishedTimestamp,
+            rowData[4], rowData[5], rowData[6], "PUBLISHED",
+            data.live_post_url || "https://instagram.com/futrix_official"
           ]);
-
           scheduledSheet.deleteRow(i + 1);
-          
           return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", message: "Post Moved to Published_Posts!" }))
             .setMimeType(ContentService.MimeType.JSON);
         }
@@ -126,25 +181,26 @@ function doPost(e) {
 }
 
 function setupSheetHeaders(ss) {
+  // Scheduled_Posts
   let scheduledSheet = ss.getSheetByName("Scheduled_Posts") || ss.getSheets()[0];
-  let publishedSheet = ss.getSheetByName("Published_Posts") || ss.insertSheet("Published_Posts");
-
-  var scheduledHeaders = [
-    "Post ID", "Created Date & Time", "Platform", "Scheduled Post Time", 
-    "Viral Reach Caption", "5 Viral Hashtags", "Google Drive Media Link", "Approval Status", "Published"
-  ];
-  scheduledSheet.getRange(1, 1, 1, 9).setValues([scheduledHeaders]);
+  scheduledSheet.getRange(1, 1, 1, 9).setValues([["Post ID", "Created Date & Time", "Platform", "Scheduled Post Time", "Viral Reach Caption", "5 Viral Hashtags", "Google Drive Media Link", "Approval Status", "Published"]]);
   scheduledSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#1E293B").setFontColor("#38BDF8");
 
-  var publishedHeaders = [
-    "Post ID", "Created Date & Time", "Platform", "Published Date & Time", 
-    "Viral Reach Caption", "5 Viral Hashtags", "Google Drive Media Link", "Status", "Live Post Link"
-  ];
-  publishedSheet.getRange(1, 1, 1, 9).setValues([publishedHeaders]);
+  // Published_Posts
+  let publishedSheet = ss.getSheetByName("Published_Posts") || ss.insertSheet("Published_Posts");
+  publishedSheet.getRange(1, 1, 1, 9).setValues([["Post ID", "Created Date & Time", "Platform", "Published Date & Time", "Viral Reach Caption", "5 Viral Hashtags", "Google Drive Media Link", "Status", "Live Post Link"]]);
   publishedSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#065F46").setFontColor("#34D399");
+
+  // Used_Topic_IDs (NEW - Cloud Anti-Duplicate Engine)
+  let usedSheet = ss.getSheetByName("Used_Topic_IDs");
+  if (!usedSheet) {
+    usedSheet = ss.insertSheet("Used_Topic_IDs");
+    usedSheet.getRange(1, 1, 1, 3).setValues([["Sub Topic ID", "Format Type", "Generated At"]]);
+    usedSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#7C3AED").setFontColor("#FFFFFF");
+  }
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: "OK", message: "FAIOS 9-Element Array Engine v32.0 Live!" }))
+  return ContentService.createTextOutput(JSON.stringify({ status: "OK", message: "FAIOS Anti-Duplicate Engine v33.0 Live!" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
