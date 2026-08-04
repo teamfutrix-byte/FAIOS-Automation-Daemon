@@ -22,12 +22,14 @@ HISTORY_FILE = os.path.join(SCRIPT_DIR, "used_topics_history.json")
 SOCIAL_CTA_FOOTER = """
 
 ━━━━━━━━━━━━━━━━━━━━
-📲 Download FUTRIX App on Google Play Store for 24/7 Socratic AI Tutor, Memory Lab, and 0% Error Q-Bank!
-🔗 Follow us on Instagram: https://instagram.com/futrix_official
-🔗 Subscribe on YouTube: https://youtube.com/@futrix_official
-🔗 Join Telegram Channel: https://t.me/futrix_official
+🔗 Join our WhatsApp Community: https://chat.whatsapp.com/EuQwlgresyD4fYxrxXJAjc
+📸 Follow us on Instagram: https://www.instagram.com/futrix_official/
+📘 Like our Facebook Page: https://www.facebook.com/profile.php?id=61590709965442
+🐦 Follow us on X (Twitter): https://x.com/futrix_
 
-❤️ Emotional Support: We are a small team of educators and developers working day and night to make premium education affordable for every single aspirant. Your one share and follow gives us the energy to keep going. Please support and share this post!
+🚀 Coming Soon: The official FUTRIX Web-App and Mobile App are launching shortly! Get ready for 24/7 Socratic AI tutoring, smart memory labs, and gamified performance metrics.
+
+❤️ Emotional Support: We are a small team of passionate educators and developers working day and night to make premium education affordable for every single aspirant. Your one share and follow gives us the energy to keep going. Please support and share this post!
 """
 
 # ─────────────────────────── FONT HELPERS ────────────────────────────────────
