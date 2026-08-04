@@ -95,7 +95,7 @@ def answer_callback_query(callback_id, text):
         print("Callback answer error:", err)
 
 def send_telegram_content_menu(target_chat_id=None):
-    text = f"<b>🚀 FUTRIX AI CMO — INTERACTIVE CONTENT MENU</b>\n\n" \
+    text = f"<b>🚀 FUTRIX CMO — INTERACTIVE CONTENT MENU</b>\n\n" \
            f"Select the content type below to generate high-converting visual assets instantly:\n\n" \
            f"• <b>🚀 Day 1 Launch</b>: Startup Announcement Deck\n" \
            f"• 🎨 <b>5-Slide Carousel</b>: Conceptual Speed Deck\n" \
@@ -442,7 +442,7 @@ def process_founder_command(user_message, target_chat_id=None):
         topic_input = user_message.replace('blog', '').replace('Blog', '').strip()
         dispatch_blog_post(topic_input, target_chat_id=target_chat_id)
     elif 'quiz' in msg_lower or 'pyq' in msg_lower:
-        dispatch_single_card_format('quiz', render_quiz_question_card, '⚡ HIGH-YIELD NEET/JEE 2027 PYQ', '❓ Test your physics numerical speed on FUTRIX AI!', '#NEETPhysics #JEEPYQ #FutrixQuiz #EdTech #NEET2027 #JEE2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('quiz', render_quiz_question_card, '⚡ HIGH-YIELD NEET/JEE 2027 PYQ', '❓ Test your physics numerical speed on FUTRIX!', '#NEETPhysics #JEEPYQ #FutrixQuiz #EdTech #NEET2027 #JEE2027', target_chat_id=target_chat_id)
     elif 'formula' in msg_lower or 'cheatsheet' in msg_lower:
         dispatch_single_card_format('formula', render_formula_cheatsheet_card, '📄 FORMULA CHEAT SHEET', '⚡ High-Yield Electrostatics Formula Cheat Sheet for NEET/JEE 2027!', '#PhysicsFormulas #NEET2027 #JEEFormulas #Futrix', target_chat_id=target_chat_id)
     elif 'meme' in msg_lower or 'reality' in msg_lower:
@@ -452,7 +452,7 @@ def process_founder_command(user_message, target_chat_id=None):
     elif 'news' in msg_lower or 'update' in msg_lower:
         dispatch_single_card_format('news', render_news_alert_card, '🚨 URGENT NTA BULLETIN', '🚨 Important NTA Registration & Advisory update for NEET/JEE 2027/2028 aspirants!', '#NTANews #NEETUpdate #JEEUpdate #FutrixAlert #NEET2027', target_chat_id=target_chat_id)
     elif 'casestudy' in msg_lower or 'proof' in msg_lower or 'story' in msg_lower:
-        dispatch_single_card_format('casestudy', render_casestudy_card, '📈 STUDENT SUCCESS CASE STUDY', '📈 How Ananya boosted her Physics score from 45 to 155 in 60 days using FUTRIX AI!', '#SuccessStory #FutrixProof #EdTech #SocraticAI #NEET2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('casestudy', render_casestudy_card, '📈 STUDENT SUCCESS CASE STUDY', '📈 How Ananya boosted her Physics score from 45 to 155 in 60 days using FUTRIX!', '#SuccessStory #FutrixProof #EdTech #SocraticAI #NEET2027', target_chat_id=target_chat_id)
     elif 'publish' in msg_lower:
         parts = user_message.split()
         if len(parts) > 1:

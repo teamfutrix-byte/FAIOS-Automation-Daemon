@@ -172,7 +172,7 @@ def render_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1",
     footer_font = _find_font(24)
     draw.text((PAD, height - PAD - 50), "FUTRIX • LEARN • DECIDE • GROW",
               font=footer_font, fill=(100, 116, 139))
-    draw.text((width - PAD - 200, height - PAD - 50), "FUTRIX AI APP 📲",
+    draw.text((width - PAD - 200, height - PAD - 50), "FUTRIX APP 📲",
               font=footer_font, fill=accent_rgb)
 
     out_path = os.path.join(TEMP_DIR, f"card_{int(time.time() * 1000)}.png")
@@ -345,7 +345,7 @@ def generate_dynamic_procedural_item(format_type, combined_used):
             "sub_topic_id": sub_id,
             "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
             "heading": f"⚡ {sub}: {chap.upper()} SPEED QUIZ",
-            "desc": f"Q: What is the {concept}?\n\n{opA}   {opB}\n{opC}   {opD}\n\nComment your answer! Correct Answer: {ans}\nMaster this concept on FUTRIX AI App! 📲",
+            "desc": f"Q: What is the {concept}?\n\n{opA}   {opB}\n{opC}   {opD}\n\nComment your answer! Correct Answer: {ans}\nMaster this concept on FUTRIX App! 📲",
             "badge": f"{sub} QUIZ",
             "accent": color
         }
@@ -388,8 +388,8 @@ def generate_dynamic_procedural_item(format_type, combined_used):
     elif format_type == "meme":
         memes = [
             ("PHYSICS NUMERICAL VS BIO THEORY", "Physics Student:\n'4 pages of integration for 1 numerical' 😤\n\nBio Student:\n'I just memorized 40 pages of NCERT in 1 hour' 😎\n\nBoth in mock test: 'WHY IS THE CUTOFF SO HIGH?!' 😭\n\nTag your study partner!", "STUDENT REALITY", "#EC4899"),
-            ("MOCK TEST MARKS VS EXPECTATIONS", "Before Mock Test:\n'Targetting 650+ in NEET today!' 🚀\n\nAfter Answer Key Release:\n'Bro 450 clear ho jayec toh bhi khush hu!' 😭\n\nRelatable? FUTRIX AI boosts mock scores by 80+ marks!", "MOCK TEST LIFE", "#8B5CF6"),
-            ("REVISION PLAN VS REALITY", "Plan: 'I will revise 5 chapters of Chemistry today'\n\nActual Day:\nOpens Instagram → 3 hours gone → Panic → Sleep 😴\n\nFUTRIX AI: 15-min daily micro-tests keep you on track!", "STUDY LIFE", "#F59E0B"),
+            ("MOCK TEST MARKS VS EXPECTATIONS", "Before Mock Test:\n'Targetting 650+ in NEET today!' 🚀\n\nAfter Answer Key Release:\n'Bro 450 clear ho jayec toh bhi khush hu!' 😭\n\nRelatable? FUTRIX boosts mock scores by 80+ marks!", "MOCK TEST LIFE", "#8B5CF6"),
+            ("REVISION PLAN VS REALITY", "Plan: 'I will revise 5 chapters of Chemistry today'\n\nActual Day:\nOpens Instagram → 3 hours gone → Panic → Sleep 😴\n\nFUTRIX: 15-min daily micro-tests keep you on track!", "STUDY LIFE", "#F59E0B"),
         ]
         head, body, badge, color = random.choice(memes)
         sub_id = f"dyn_meme_{timestamp_seed}"
@@ -405,7 +405,7 @@ def generate_dynamic_procedural_item(format_type, combined_used):
     elif format_type == "roadmap":
         roadmaps = [
             ("TOP 5 HIGH WEIGHTAGE PHYSICS CHAPTERS", "1. Electrostatics & Capacitance — 16 Marks\n2. Current Electricity — 12 Marks\n3. Modern Physics & Atoms — 16 Marks\n4. Ray & Wave Optics — 12 Marks\n5. Laws of Motion & Work Energy — 12 Marks\n\nMaster these 5 = 140+ Physics score guaranteed!", "PHYSICS ROADMAP", "#10B981"),
-            ("ORGANIC CHEMISTRY 30-DAY MASTER PLAN", "Week 1: GOC & Isomerism (Foundation)\nWeek 2: Hydrocarbons & Haloalkanes\nWeek 3: Aldehydes, Ketones & Amines\nWeek 4: Biomolecules & Named Reactions\n\nFollow this on FUTRIX AI = 100% Organic score!", "CHEM ROADMAP", "#F59E0B"),
+            ("ORGANIC CHEMISTRY 30-DAY MASTER PLAN", "Week 1: GOC & Isomerism (Foundation)\nWeek 2: Hydrocarbons & Haloalkanes\nWeek 3: Aldehydes, Ketones & Amines\nWeek 4: Biomolecules & Named Reactions\n\nFollow this on FUTRIX = 100% Organic score!", "CHEM ROADMAP", "#F59E0B"),
         ]
         head, body, badge, color = random.choice(roadmaps)
         sub_id = f"dyn_roadmap_{timestamp_seed}"
@@ -425,8 +425,8 @@ def generate_dynamic_procedural_item(format_type, combined_used):
         return {
             "sub_topic_id": sub_id,
             "title": "SUCCESS STORY",
-            "heading": f"📈 {name.upper()}: SCORED 620+ IN NEET WITH FUTRIX AI",
-            "desc": f"{name} was struggling with speed in Physics & Organic Chemistry.\n\nFUTRIX Strategy:\n• 20 min daily Socratic AI doubt resolution\n• Active recall flashcards for NCERT Biology\n• Weekly mock test analysis & weak-area targeting\n\nResult: 620+ score & Government Medical Seat!\nYour success story is NEXT on FUTRIX AI App 📲",
+            "heading": f"📈 {name.upper()}: SCORED 620+ IN NEET WITH FUTRIX",
+            "desc": f"{name} was struggling with speed in Physics & Organic Chemistry.\n\nFUTRIX Strategy:\n• 20 min daily Socratic AI doubt resolution\n• Active recall flashcards for NCERT Biology\n• Weekly mock test analysis & weak-area targeting\n\nResult: 620+ score & Government Medical Seat!\nYour success story is NEXT on FUTRIX App 📲",
             "badge": "STUDENT PROOF",
             "accent": "#8B5CF6"
         }
@@ -536,7 +536,7 @@ MEME_POOLS = [
      "badge": "RELATABLE MEME", "accent": "#8B5CF6"},
     {"sub_topic_id": "meme_coaching_vs_self_study", "title": "STUDENT REALITY",
      "heading": "COACHING WALLAH VS SELF STUDY STUDENT",
-     "desc": "Coaching Student:\n'6 hours lecture + 4 hours DPP + 2 hours test = 0 hours sleep' 😴\n\nSelf Study Student:\n'YouTube → Instagram → YouTube → PANIC → YouTube' 📱\n\nBoth need FUTRIX AI for 60-second doubt solving!\n\nWhich one are you? Comment below!",
+     "desc": "Coaching Student:\n'6 hours lecture + 4 hours DPP + 2 hours test = 0 hours sleep' 😴\n\nSelf Study Student:\n'YouTube → Instagram → YouTube → PANIC → YouTube' 📱\n\nBoth need FUTRIX for 60-second doubt solving!\n\nWhich one are you? Comment below!",
      "badge": "STUDENT LIFE", "accent": "#F59E0B"},
     {"sub_topic_id": "meme_january_vs_april_jee_student", "title": "STUDENT REALITY",
      "heading": "JEE STUDENT: JANUARY VS APRIL ATTEMPT",
@@ -548,7 +548,7 @@ MEME_POOLS = [
      "badge": "NEET MEME", "accent": "#10B981"},
     {"sub_topic_id": "meme_phone_vs_study_time", "title": "STUDENT REALITY",
      "heading": "STUDY PLAN VS WHAT ACTUALLY HAPPENS",
-     "desc": "Study Plan:\n6AM: Wake up & revise\n8AM: Physics DPP\n10AM: Chemistry practice\n\nWhat Actually Happens:\n6AM: 'Just 5 more minutes'\n10AM: Wake up, open Instagram\n12PM: 'I'll start properly tomorrow' 😭\n\nFUTRIX AI: Study in 20 min bursts = 10x retention!",
+     "desc": "Study Plan:\n6AM: Wake up & revise\n8AM: Physics DPP\n10AM: Chemistry practice\n\nWhat Actually Happens:\n6AM: 'Just 5 more minutes'\n10AM: Wake up, open Instagram\n12PM: 'I'll start properly tomorrow' 😭\n\nFUTRIX: Study in 20 min bursts = 10x retention!",
      "badge": "STUDY REALITY", "accent": "#38BDF8"},
 ]
 
@@ -571,14 +571,14 @@ ROADMAP_POOLS = [
      "badge": "MATH ROADMAP", "accent": "#3B82F6"},
     {"sub_topic_id": "roadmap_60day_neet_crash_plan", "title": "CHAPTER ROADMAP",
      "heading": "60-DAY NEET 2027 CRASH REVISION STRATEGY",
-     "desc": "Week 1-2: Physics — Electrostatics + Modern Physics\nWeek 3-4: Chemistry — Organic + Physical Chem\nWeek 5-6: Biology — Genetics + Ecology\nWeek 7: Full-length mock tests daily\nWeek 8: Weak area revision + formula revision\n\nFollow this plan + FUTRIX AI = 600+ score guaranteed!",
+     "desc": "Week 1-2: Physics — Electrostatics + Modern Physics\nWeek 3-4: Chemistry — Organic + Physical Chem\nWeek 5-6: Biology — Genetics + Ecology\nWeek 7: Full-length mock tests daily\nWeek 8: Weak area revision + formula revision\n\nFollow this plan + FUTRIX = 600+ score guaranteed!",
      "badge": "60-DAY CRASH PLAN", "accent": "#8B5CF6"},
 ]
 
 CASESTUDY_POOLS = [
     {"sub_topic_id": "casestudy_ananya_physics_45_to_155", "title": "SUCCESS STORY",
      "heading": "ANANYA: PHYSICS 45 TO 155 IN 60 DAYS",
-     "desc": "Ananya was stuck at 45/180 in Physics.\n\nHer strategy with FUTRIX AI:\n• 20 min daily Socratic doubt resolution\n• Option elimination over formula memorization\n• Spaced revision alerts via FUTRIX app\n\nResult: 155/180 in Physics in NEET 2027 mock!\nFUTRIX AI — your personal IIT/NEET mentor.",
+     "desc": "Ananya was stuck at 45/180 in Physics.\n\nHer strategy with FUTRIX:\n• 20 min daily Socratic doubt resolution\n• Option elimination over formula memorization\n• Spaced revision alerts via FUTRIX app\n\nResult: 155/180 in Physics in NEET 2027 mock!\nFUTRIX — your personal IIT/NEET mentor.",
      "badge": "STUDENT PROOF", "accent": "#8B5CF6"},
     {"sub_topic_id": "casestudy_rohan_jee_rank_improvement", "title": "SUCCESS STORY",
      "heading": "ROHAN: JEE RANK 45,000 TO 2,800 IN 4 MONTHS",
@@ -586,15 +586,15 @@ CASESTUDY_POOLS = [
      "badge": "JEE SUCCESS", "accent": "#10B981"},
     {"sub_topic_id": "casestudy_priya_dropper_neet_600", "title": "SUCCESS STORY",
      "heading": "PRIYA: DROPPER TO 612/720 IN NEET 2027",
-     "desc": "Priya scored 487 in her first NEET attempt.\n\nDropper year with FUTRIX AI:\n• Biology NCERT mastery via AI flashcards\n• Physics numericals in 60s using Socratic method\n• Zero coaching fees — saved Rs 2 lakh\n\nResult: 612/720 — Government Medical College secured!\nEvery dropper has one more chance. Use it right.",
+     "desc": "Priya scored 487 in her first NEET attempt.\n\nDropper year with FUTRIX:\n• Biology NCERT mastery via AI flashcards\n• Physics numericals in 60s using Socratic method\n• Zero coaching fees — saved Rs 2 lakh\n\nResult: 612/720 — Government Medical College secured!\nEvery dropper has one more chance. Use it right.",
      "badge": "DROPPER SUCCESS", "accent": "#F59E0B"},
     {"sub_topic_id": "casestudy_arjun_chemistry_organic_master", "title": "SUCCESS STORY",
      "heading": "ARJUN: ORGANIC CHEM 0 TO HERO IN 45 DAYS",
-     "desc": "Arjun used to skip all Organic Chemistry questions.\n\nHis 45-day FUTRIX AI plan:\n• Named reactions via spaced recall cards\n• Mechanism understanding (not memorization)\n• 15 organic DPP sets with instant AI explanations\n\nResult: 45/60 in Organic Chemistry in JEE Main!\nOrganic Chem is learnable — FUTRIX proves it.",
+     "desc": "Arjun used to skip all Organic Chemistry questions.\n\nHis 45-day FUTRIX plan:\n• Named reactions via spaced recall cards\n• Mechanism understanding (not memorization)\n• 15 organic DPP sets with instant AI explanations\n\nResult: 45/60 in Organic Chemistry in JEE Main!\nOrganic Chem is learnable — FUTRIX proves it.",
      "badge": "CHEM SUCCESS", "accent": "#38BDF8"},
     {"sub_topic_id": "casestudy_divya_biology_ncert_mastery", "title": "SUCCESS STORY",
      "heading": "DIVYA: NCERT BIOLOGY 100% MASTERY IN 30 DAYS",
-     "desc": "Divya had only 30 days before NEET 2027.\n\nHer intensive FUTRIX AI strategy:\n• AI-generated 1-line summaries of each NCERT page\n• Daily 50 MCQs from previous 10 years\n• Diagrams mastered via visual recall techniques\n\nResult: 340/360 in Biology — Top 0.1% in NEET!\n30 days is enough when you study SMART.",
+     "desc": "Divya had only 30 days before NEET 2027.\n\nHer intensive FUTRIX strategy:\n• AI-generated 1-line summaries of each NCERT page\n• Daily 50 MCQs from previous 10 years\n• Diagrams mastered via visual recall techniques\n\nResult: 340/360 in Biology — Top 0.1% in NEET!\n30 days is enough when you study SMART.",
      "badge": "BIOLOGY SUCCESS", "accent": "#EC4899"},
 ]
 
@@ -620,7 +620,7 @@ SYLLABUS_PILLARS = [
      "topic": "ELECTRIC DIPOLE FIELD & TORQUE DERIVATIONS",
      "badge": "HIGH-YIELD REVISION",
      "caption": "MASTER ELECTRIC DIPOLE FORMULAS FOR NEET/JEE 2027!\n\nLearn axial vs equatorial field ratios & work done in rotating a dipole.",
-     "hashtags": "#ElectricDipole #NEETPhysics #JEEPhysics #FormulaRevision #FutrixAI #NEET2027",
+     "hashtags": "#ElectricDipole #NEETPhysics #JEEPhysics #FormulaRevision #Futrix #NEET2027",
      "slides": [
          {"badge": "ELECTRIC DIPOLE", "title": "NEVER CONFUSE AXIAL VS EQUATORIAL",
           "desc": "Axial field = 2 x Equatorial field at same distance r\nThis ratio appears in EVERY dipole question!\nMemorize it NOW.", "accent": "#8B5CF6"},
@@ -637,7 +637,7 @@ SYLLABUS_PILLARS = [
      "topic": "KIRCHHOFF'S LAWS — CIRCUIT SOLVING IN 2 MINUTES",
      "badge": "CIRCUIT MASTERY",
      "caption": "SOLVE ANY COMPLEX CIRCUIT IN 2 MINUTES!\n\nKirchhoff's Laws shortcut for NEET & JEE 2027.",
-     "hashtags": "#KirchhoffsLaw #CircuitSolving #NEETPhysics #JEEPhysics #FutrixAI #NEET2027",
+     "hashtags": "#KirchhoffsLaw #CircuitSolving #NEETPhysics #JEEPhysics #Futrix #NEET2027",
      "slides": [
          {"badge": "KCL LAW", "title": "KIRCHHOFF'S CURRENT LAW (KCL)",
           "desc": "Sum of currents entering = Sum of currents leaving a junction\nSimple rule: treat junction as a node\nSign convention: current IN = positive, OUT = negative", "accent": "#6366F1"},
@@ -648,7 +648,7 @@ SYLLABUS_PILLARS = [
          {"badge": "TRICK 2", "title": "WHEATSTONE BRIDGE: ZERO GALVANOMETER TRICK",
           "desc": "If P/Q = R/S: bridge balanced, Ig = 0\nRemove galvanometer branch completely!\nReduces 5-resistor network to simple series-parallel", "accent": "#EC4899"},
          {"badge": "PRACTICE", "title": "MASTER 20+ CIRCUIT PROBLEMS ON FUTRIX",
-          "desc": "FUTRIX AI breaks down each circuit step-by-step.\nSocratic guidance = you UNDERSTAND not just memorize!", "accent": "#38BDF8"},
+          "desc": "FUTRIX breaks down each circuit step-by-step.\nSocratic guidance = you UNDERSTAND not just memorize!", "accent": "#38BDF8"},
      ]},
     {"chapter": "Modern Physics", "sub_topic_id": "modern_physics_photoelectric_bohr",
      "topic": "PHOTOELECTRIC EFFECT & BOHR MODEL MASTERY",
@@ -671,7 +671,7 @@ SYLLABUS_PILLARS = [
      "topic": "TOTAL INTERNAL REFLECTION & REFRACTION TRICKS",
      "badge": "OPTICS MASTERY",
      "caption": "MASTER RAY OPTICS IN 3 DAYS FOR NEET/JEE 2027!\n\nTotal Internal Reflection + lens tricks that save 2 minutes per question.",
-     "hashtags": "#RayOptics #TotalInternalReflection #NEETPhysics #JEEPhysics #FutrixAI #NEET2027",
+     "hashtags": "#RayOptics #TotalInternalReflection #NEETPhysics #JEEPhysics #Futrix #NEET2027",
      "slides": [
          {"badge": "REFRACTION", "title": "SNELL'S LAW & CRITICAL ANGLE",
           "desc": "Snell's Law: n1 sin(i) = n2 sin(r)\nCritical angle: sin(c) = n2/n1 (n1 > n2)\nFor glass-air: sin(c) = 1/n_glass\nWhen i > c: Total Internal Reflection occurs!", "accent": "#6366F1"},
@@ -682,13 +682,13 @@ SYLLABUS_PILLARS = [
          {"badge": "MIRROR TRICKS", "title": "MIRROR FORMULA SIGN CONVENTION",
           "desc": "All distances from pole (origin)\nIncident ray direction = positive direction\nObject always at negative side (real object)\nFocal length: concave = negative, convex = positive\nVirtual image: positive v value", "accent": "#EC4899"},
          {"badge": "FUTRIX OPTICS", "title": "CRACK RAY OPTICS IN 3 DAYS — FUTRIX",
-          "desc": "FUTRIX AI assigns you optics questions in increasing difficulty.\nMaster concepts before exam = 12 guaranteed marks!", "accent": "#38BDF8"},
+          "desc": "FUTRIX assigns you optics questions in increasing difficulty.\nMaster concepts before exam = 12 guaranteed marks!", "accent": "#38BDF8"},
      ]},
     {"chapter": "Thermodynamics", "sub_topic_id": "thermodynamics_laws_carnot_entropy",
      "topic": "THERMODYNAMICS LAWS & CARNOT ENGINE MASTERY",
      "badge": "THERMO MASTERY",
      "caption": "SOLVE ALL THERMODYNAMICS QUESTIONS IN UNDER 1 MINUTE!\n\nCarnot engine + Laws of Thermodynamics shortcuts for NEET & JEE 2027.",
-     "hashtags": "#Thermodynamics #CarnotEngine #NEETPhysics #JEEPhysics #FutrixAI #NEET2027",
+     "hashtags": "#Thermodynamics #CarnotEngine #NEETPhysics #JEEPhysics #Futrix #NEET2027",
      "slides": [
          {"badge": "FIRST LAW", "title": "1ST LAW: ENERGY CONSERVATION",
           "desc": "dU = dQ - dW\nFor isothermal: dU = 0, so dQ = dW\nFor adiabatic: dQ = 0, so dU = -dW\nFor isochoric: dW = 0, so dU = dQ\nFor isobaric: dW = P*dV", "accent": "#EF4444"},
@@ -699,7 +699,7 @@ SYLLABUS_PILLARS = [
          {"badge": "SECOND LAW", "title": "2ND LAW: ENTROPY ALWAYS INCREASES",
           "desc": "Heat flows from hot to cold spontaneously\nNo engine is 100% efficient (Kelvin-Planck)\nHeat pump: entropy of universe always increases\nEntropy change: dS = dQ/T (reversible process)", "accent": "#8B5CF6"},
          {"badge": "FUTRIX THERMO", "title": "MASTER THERMODYNAMICS IN 5 DAYS — FUTRIX",
-          "desc": "FUTRIX AI provides step-by-step solution of each process.\nThermodynamics = 12-16 marks across JEE + NEET. Guaranteed!", "accent": "#38BDF8"},
+          "desc": "FUTRIX provides step-by-step solution of each process.\nThermodynamics = 12-16 marks across JEE + NEET. Guaranteed!", "accent": "#38BDF8"},
      ]},
 ]
 
@@ -773,159 +773,3 @@ def cleanup_local_temp_media(file_paths):
         except Exception as err:
             print(f"[AUTO-CLEANUP ERROR] {fpath}: {err}")
 
-# ─────────────────────────── CONTENT POOLS ───────────────────────────────────
-
-QUIZ_POOLS = [
-    {"sub_topic_id": "quiz_electrostatics_midpoint_field", "title": "NEET/JEE PYQ",
-     "heading": "⚡ HIGH-YIELD NEET/JEE 2027 ELECTROSTATICS SPEED QUIZ",
-     "desc": "Q: Two identical charges +q are placed at distance 2a.\nWhat is the electric field at the midpoint?\n\nOption A: 2kq/a²\nOption B: ZERO\nOption C: kq/a²\nOption D: 4kq/a²\n\nComment your answer below! 👇",
-     "badge": "SPEED QUIZ", "accent": "#FACC15"},
-    {"sub_topic_id": "quiz_current_wheatstone_bridge", "title": "NEET/JEE PYQ",
-     "heading": "⚡ CURRENT ELECTRICITY: WHEATSTONE BRIDGE QUIZ",
-     "desc": "Q: In a balanced Wheatstone bridge, if the galvanometer resistance is doubled, what happens?\n\nOption A: Balance changes\nOption B: Remains Unchanged\nOption C: Current doubles\nOption D: Resistance becomes zero\n\nComment your answer below! 👇",
-     "badge": "CIRCUIT QUIZ", "accent": "#38BDF8"},
-    {"sub_topic_id": "quiz_optics_lens_water_focal_shift", "title": "NEET/JEE PYQ",
-     "heading": "⚡ RAY OPTICS: LENS FOCAL LENGTH SHIFT QUIZ",
-     "desc": "Q: A convex glass lens (mu=1.5) has focal length f in air.\nWhat is its focal length when immersed in water (mu=4/3)?\n\nOption A: f\nOption B: 2f\nOption C: 4f\nOption D: f/4\n\nComment your answer below! 👇",
-     "badge": "OPTICS QUIZ", "accent": "#10B981"},
-]
-
-FORMULA_POOLS = [
-    {"sub_topic_id": "formula_capacitance_dielectric_energy", "title": "FORMULA CHEAT SHEET",
-     "heading": "📄 CAPACITANCE & DIELECTRIC SLAB FORMULA CHEAT SHEET",
-     "desc": "• Parallel Plate Capacitance: C = ε₀A / d\n• Capacitance with Dielectric: C' = K × C\n• Energy Stored: U = ½CV² = Q² / 2C\n• Energy Density: u = ½ε₀E²\n\nSave this card for NEET & JEE 2027 exam revision! 📌",
-     "badge": "FORMULA SHEET", "accent": "#38BDF8"},
-    {"sub_topic_id": "formula_moving_charges_cyclotron_force", "title": "FORMULA CHEAT SHEET",
-     "heading": "📄 MOVING CHARGES & MAGNETISM FORMULA CHEAT SHEET",
-     "desc": "• Magnetic Force: F = q(v × B) = qvB sinθ\n• Cyclotron Radius: r = mv / qB\n• Cyclotron Frequency: f = qB / 2πm\n• Magnetic Dipole Moment: M = I × A\n\nSave this card for NEET & JEE 2027 exam revision! 📌",
-     "badge": "MAGNETISM SHEET", "accent": "#8B5CF6"},
-]
-
-NEWS_POOLS = [
-    {"sub_topic_id": "news_nta_advisory_2027_biometric_aadhaar", "title": "NTA ADVISORY",
-     "heading": "🚨 NTA GUIDELINES FOR NEET & JEE 2027/2028 ASPIRANTS",
-     "desc": "NTA Update for upcoming 2027 batches:\n• Biometric Verification & Aadhaar Match mandatory\n• NCERT Rationalized Syllabus strictly enforced\n• CBT Exam Center mock test practice recommended\n\nShare with your batchmates!",
-     "badge": "URGENT NTA ALERT", "accent": "#EF4444"},
-    {"sub_topic_id": "news_nta_advisory_2027_cbt_center_mock", "title": "NTA ADVISORY",
-     "heading": "🚨 NTA CBT EXAM CENTER MOCK PRACTICE ADVISORY 2027",
-     "desc": "NTA Advisory for JEE & NEET 2027:\n• Official NTA Abhyas CBT mock tests available online\n• Practice computer screen timer management\n• Verify Exam Center location 24h before reporting\n\nShare with your batchmates!",
-     "badge": "EXAM ADVISORY", "accent": "#F59E0B"},
-]
-
-MEME_POOLS = [
-    {"sub_topic_id": "meme_start_11th_vs_2_months_before", "title": "STUDENT REALITY CHECK",
-     "heading": "😭 NEET & JEE 2027 ASPIRANTS: START OF 11TH VS 2 MONTHS BEFORE EXAM",
-     "desc": "Start of 11th Grade:\n'I will secure AIR 1 under 100 in JEE Advanced!' 🚀\n\n2 Months Before Exam:\n'Bro, just tell me if I can clear cutoff by studying Electrostatics today!' 😭\n\nRelatable? Tag your study partner!",
-     "badge": "STUDENT REALITY", "accent": "#EC4899"},
-]
-
-ROADMAP_POOLS = [
-    {"sub_topic_id": "roadmap_physics_top5_high_weightage_2027", "title": "CHAPTER ROADMAP",
-     "heading": "🗺 TOP 5 HIGH-WEIGHTAGE PHYSICS CHAPTERS FOR NEET 2027",
-     "desc": "1. Electrostatics & Capacitance — 4 Qs (16 Marks)\n2. Current Electricity — 3 Qs (12 Marks)\n3. Modern Physics & Atoms — 4 Qs (16 Marks)\n4. Ray & Wave Optics — 3 Qs (12 Marks)\n5. Laws of Motion & Work Energy — 3 Qs (12 Marks)\n\nMaster these 5 chapters to guarantee 140+ marks!",
-     "badge": "HIGH WEIGHTAGE", "accent": "#10B981"},
-]
-
-CASESTUDY_POOLS = [
-    {"sub_topic_id": "casestudy_ananya_physics_45_to_155", "title": "SUCCESS STORY",
-     "heading": "📈 HOW ANANYA BOOSTED HER PHYSICS SCORE FROM 45 TO 155 IN 60 DAYS",
-     "desc": "Ananya was struggling with Physics numerical speed.\n\nBy using FUTRIX Socratic AI doubt resolution for 20 minutes daily, she mastered option elimination & active formula recall.\n\nBoost your rank today on FUTRIX AI App!",
-     "badge": "STUDENT PROOF", "accent": "#8B5CF6"},
-]
-
-SYLLABUS_PILLARS = [
-    {"chapter": "Electrostatics", "sub_topic_id": "electrostatics_coulomb_law_vectors",
-     "topic": "⚡ COULOMB'S LAW & VECTOR SUPERPOSITION TRICKS",
-     "badge": "PHYSICS SPEED TRICK",
-     "caption": "⚡ SOLVE COULOMB'S LAW VECTOR NUMERICALS IN 30 SECONDS!\n\nMaster the symmetry shortcut for NEET & JEE 2027/2028.",
-     "hashtags": "#NEETPhysics #JEEPhysics #CoulombsLaw #Electrostatics #FutrixTricks #NEET2027",
-     "slides": [
-         {"badge": "COULOMB LAW", "title": "STUCK ON CHARGE CORNER VECTOR NUMERICALS? 📐",
-          "desc": "Calculating vector components for 4 point charges at square corners takes 4+ minutes manually.", "accent": "#6366F1"},
-         {"badge": "SYMMETRY RULE", "title": "RULE 1: USE GEOMETRIC SYMMETRY CANCEL ⚖️",
-          "desc": "Equal charges at symmetric opposite corners produce net central force = ZERO.", "accent": "#F59E0B"},
-         {"badge": "MAGNITUDE FORMULA", "title": "RULE 2: VECTOR SUM F_NET = √3 × F ⚡",
-          "desc": "For 60° angle between equal forces, vector resultant is always √3 times single force.", "accent": "#10B981"},
-         {"badge": "EXAM APPLICATION", "title": "NEET/JEE SPEED ELIMINATION TRICK ⏱️",
-          "desc": "Eliminate 3 asymmetrical option magnitudes in 5 seconds without solving equations.", "accent": "#EC4899"},
-         {"badge": "PRACTICE NOW", "title": "SOLVE 30+ VECTOR NUMERICALS ON FUTRIX 📲",
-          "desc": "Download FUTRIX App & get instant Socratic AI guidance on every step.", "accent": "#38BDF8"},
-     ]},
-    {"chapter": "Electrostatics", "sub_topic_id": "electrostatics_dipole_field_torque",
-     "topic": "🧠 ELECTRIC DIPOLE FIELD & TORQUE DERIVATIONS",
-     "badge": "HIGH-YIELD REVISION",
-     "caption": "🧠 MASTER ELECTRIC DIPOLE FORMULAS FOR NEET/JEE 2027!\n\nLearn axial vs equatorial field ratios & work done in rotating a dipole.",
-     "hashtags": "#ElectricDipole #NEETPhysics #JEEPhysics #FormulaRevision #FutrixAI #NEET2027",
-     "slides": [
-         {"badge": "ELECTRIC DIPOLE", "title": "NEVER CONFUSE AXIAL VS EQUATORIAL FIELD 🧭",
-          "desc": "Axial field is ALWAYS twice the magnitude of equatorial field at same distance r.", "accent": "#8B5CF6"},
-         {"badge": "AXIAL FIELD", "title": "AXIAL FIELD: E_axial = 2kp / r³ ⚡",
-          "desc": "Field vector is parallel to dipole moment p (from negative to positive charge).", "accent": "#3B82F6"},
-         {"badge": "EQUATORIAL FIELD", "title": "EQUATORIAL FIELD: E_eq = kp / r³ ⚖️",
-          "desc": "Field vector is antiparallel to dipole moment p.", "accent": "#10B981"},
-         {"badge": "TORQUE & WORK", "title": "TORQUE τ = p × E | WORK W = pE(cosθ₁ − cosθ₂)",
-          "desc": "Stable equilibrium at θ=0° (minimum potential energy U = -pE).", "accent": "#F59E0B"},
-         {"badge": "REVISE DAILY", "title": "LOCK DIPOLE RETENTION ON FUTRIX APP 📲",
-          "desc": "SuperMemo-2 spaced recall pushes revision flashcards right before exam decay.", "accent": "#38BDF8"},
-     ]},
-]
-
-# ─────────────────────────── ASYNC RENDER WRAPPERS ───────────────────────────
-
-async def render_playwright_carousel_deck(past_topics=None):
-    """Render 5-slide carousel deck using Pillow (no browser needed)."""
-    selected_pillar = select_non_duplicate_item(SYLLABUS_PILLARS, past_topics)
-    slides_data = selected_pillar["slides"]
-    slide_paths = []
-    for idx, slide in enumerate(slides_data, 1):
-        path = render_carousel_slide_pil(
-            slide["badge"], slide["title"], slide["desc"],
-            slide["accent"], idx, total=5
-        )
-        slide_paths.append(path)
-    return slide_paths, slide_paths[0], selected_pillar
-
-async def render_blog_post_image(topic_str="", past_topics=None):
-    title = topic_str if topic_str else "Why Socratic AI Guidance Outperforms Rote Memorization in NEET & JEE 2027"
-    intro = "Competitive exam prep is undergoing a massive shift. Traditional coaching is being replaced by sub-60s instant AI doubt resolution."
-    points = [
-        "Instant Doubt Resolution: Eliminating student bottlenecks within 60 seconds.",
-        "Adaptive Spaced Revision: SuperMemo-2 algorithm schedules review before memory decay.",
-        "Gamified Rank XP: All-India leaderboards driving student consistency.",
-    ]
-    path = render_card_pil(
-        "OFFICIAL BLOG ARTICLE", title,
-        intro + "\n\n" + "\n".join(f"• {p}" for p in points),
-        "BLOG ARTICLE", "#34D399", width=1200, height=630
-    )
-    return path, title, intro, points
-
-async def render_quiz_question_card(past_topics=None):
-    item = select_non_duplicate_item(QUIZ_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
-
-async def render_formula_cheatsheet_card(past_topics=None):
-    item = select_non_duplicate_item(FORMULA_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
-
-async def render_meme_card(past_topics=None):
-    item = select_non_duplicate_item(MEME_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
-
-async def render_roadmap_card(past_topics=None):
-    item = select_non_duplicate_item(ROADMAP_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
-
-async def render_news_alert_card(past_topics=None):
-    item = select_non_duplicate_item(NEWS_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
-
-async def render_casestudy_card(past_topics=None):
-    item = select_non_duplicate_item(CASESTUDY_POOLS, past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]

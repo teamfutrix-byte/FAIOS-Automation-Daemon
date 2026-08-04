@@ -134,7 +134,7 @@ function doPost(e) {
         data.platform,
         data.post_time,
         data.caption,
-        data.hashtags || "#NEET2027 #JEE2027 #FutrixAI #EdTech #StudySmart",
+        data.hashtags || "#NEET2027 #JEE2027 #Futrix #EdTech #StudySmart",
         clickableFormula,
         data.approval_status || "APPROVED",
         false
