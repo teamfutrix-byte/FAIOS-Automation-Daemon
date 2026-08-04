@@ -736,32 +736,32 @@ async def render_blog_post_image(topic_str="", past_topics=None):
 async def render_quiz_question_card(past_topics=None):
     item = select_non_duplicate_item(QUIZ_POOLS, past_topics, format_type="quiz")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 async def render_formula_cheatsheet_card(past_topics=None):
     item = select_non_duplicate_item(FORMULA_POOLS, past_topics, format_type="formula")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 async def render_meme_card(past_topics=None):
     item = select_non_duplicate_item(MEME_POOLS, past_topics, format_type="meme")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 async def render_roadmap_card(past_topics=None):
     item = select_non_duplicate_item(ROADMAP_POOLS, past_topics, format_type="roadmap")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 async def render_news_alert_card(past_topics=None):
     item = select_non_duplicate_item(NEWS_POOLS, past_topics, format_type="news")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 async def render_casestudy_card(past_topics=None):
     item = select_non_duplicate_item(CASESTUDY_POOLS, past_topics, format_type="casestudy")
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
-    return path, item["sub_topic_id"]
+    return path, item
 
 
 def cleanup_local_temp_media(file_paths):

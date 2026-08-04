@@ -265,22 +265,51 @@ def dispatch_blog_post(topic_str="", target_chat_id=None):
     send_telegram_message(blog_text, reply_markup=reply_markup, target_chat_id=target_chat_id)
 
 async def _render_and_get_id(async_render_func, past_topics):
-    """Wrapper that calls async render and returns (path, sub_topic_id)."""
+    """Wrapper that calls async render and returns (path, item_dict)."""
     result = await async_render_func(past_topics)
     if isinstance(result, tuple):
-        return result  # already (path, sub_topic_id)
-    return result, None  # old-style, just path
+        return result  # already (path, item)
+    return result, {}
 
-def dispatch_single_card_format(fmt_name, async_render_func, title_badge, caption_text, hashtags_str, target_chat_id=None):
+def dispatch_single_card_format(fmt_name, async_render_func, target_chat_id=None):
     global current_draft_asset
     past_topics = get_past_topics_from_sheets()
-    card_path, used_sub_topic_id = asyncio.run(_render_and_get_id(async_render_func, past_topics))
+    card_path, item = asyncio.run(_render_and_get_id(async_render_func, past_topics))
 
-    # CLOUD ANTI-DUPLICATE: Log sub_topic_id immediately after generation
+    # Fallback to empty dict if item is not dict
+    if not isinstance(item, dict):
+        item = {"sub_topic_id": str(item), "title": fmt_name.upper(), "heading": fmt_name.upper(), "desc": "", "badge": fmt_name.upper(), "accent": "#6366F1"}
+
+    used_sub_topic_id = item.get("sub_topic_id")
     if used_sub_topic_id:
         log_used_topic_to_sheets(used_sub_topic_id, fmt_name)
 
-    asset_id = f"{fmt_name}_{int(time.time())}"
+    badge_upper = str(item.get("badge", "")).upper()
+    if "PHYSICS" in badge_upper:
+        subject_tags = "#Physics #NEETPhysics #JEEPhysics"
+        subject_name = "Physics"
+    elif "CHEMISTRY" in badge_upper or "CHEM" in badge_upper:
+        subject_tags = "#Chemistry #NEETChemistry #JEEChemistry"
+        subject_name = "Chemistry"
+    elif "BIOLOGY" in badge_upper or "NEET" in badge_upper:
+        subject_tags = "#Biology #NEETBiology"
+        subject_name = "Biology"
+    elif "MATH" in badge_upper:
+        subject_tags = "#Math #JEEMath"
+        subject_name = "Mathematics"
+    elif "NTA" in badge_upper:
+        subject_tags = "#NTANews #NEET2027 #JEE2027"
+        subject_name = "NTA Update"
+    else:
+        subject_tags = "#NEET2027 #JEE2027 #StudentLife"
+        subject_name = "Student Strategy"
+
+    title_badge = f"⚡ {item.get('title', fmt_name.upper())}"
+    heading_text = str(item.get('heading', '')).replace("⚡", "").strip()
+    caption_text = f"❓ <b>{heading_text}</b>\n\n🎯 Master this high-yield {subject_name} concept for NEET & JEE 2027/2028 prep on FUTRIX!"
+    hashtags_str = f"{subject_tags} #Futrix #EdTech #StudySmart #ExamPrep"
+
+    asset_id = f"{fmt_name}_{used_sub_topic_id}_{int(time.time())}"
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': [card_path],
@@ -292,8 +321,8 @@ def dispatch_single_card_format(fmt_name, async_render_func, title_badge, captio
 
     reply_markup = {
         'inline_keyboard': [
-            [{'text': f"✅ APPROVE {title_badge.upper()}", 'callback_data': f"APPROVE_ASSET:{asset_id}:0"}],
-            [{'text': f"❌ REJECT {title_badge.upper()}", 'callback_data': f"REJECT_ASSET:{asset_id}"}]
+            [{'text': f"✅ APPROVE {title_badge}", 'callback_data': f"APPROVE_ASSET:{asset_id}:0"}],
+            [{'text': f"❌ REJECT {title_badge}", 'callback_data': f"REJECT_ASSET:{asset_id}"}]
         ]
     }
     send_telegram_single_photo(card_path, f"<b>{title_badge}</b>\n\nReview Graphic Card above & tap below to select target platform & date:", reply_markup=reply_markup, target_chat_id=target_chat_id)
@@ -431,7 +460,7 @@ def execute_platform_schedule_with_date(days_offset, platform, asset_id, is_blog
             cleanup_local_temp_media(current_draft_asset.get('slides', []))
 
 def process_founder_command(user_message, target_chat_id=None):
-    print(f"[Master Pipeline v46.0] Founder Command Received: '{user_message}' from Chat ID: {target_chat_id}")
+    print(f"[Master Pipeline v47.2] Founder Command Received: '{user_message}' from Chat ID: {target_chat_id}")
     msg_lower = user_message.lower()
 
     if msg_lower in ['menu', 'help', 'content', 'social', 'start', 'hi', 'hello', 'options']:
@@ -442,17 +471,17 @@ def process_founder_command(user_message, target_chat_id=None):
         topic_input = user_message.replace('blog', '').replace('Blog', '').strip()
         dispatch_blog_post(topic_input, target_chat_id=target_chat_id)
     elif 'quiz' in msg_lower or 'pyq' in msg_lower:
-        dispatch_single_card_format('quiz', render_quiz_question_card, '⚡ HIGH-YIELD NEET/JEE 2027 PYQ', '❓ Test your physics numerical speed on FUTRIX!', '#NEETPhysics #JEEPYQ #FutrixQuiz #EdTech #NEET2027 #JEE2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('quiz', render_quiz_question_card, target_chat_id=target_chat_id)
     elif 'formula' in msg_lower or 'cheatsheet' in msg_lower:
-        dispatch_single_card_format('formula', render_formula_cheatsheet_card, '📄 FORMULA CHEAT SHEET', '⚡ High-Yield Electrostatics Formula Cheat Sheet for NEET/JEE 2027!', '#PhysicsFormulas #NEET2027 #JEEFormulas #Futrix', target_chat_id=target_chat_id)
+        dispatch_single_card_format('formula', render_formula_cheatsheet_card, target_chat_id=target_chat_id)
     elif 'meme' in msg_lower or 'reality' in msg_lower:
-        dispatch_single_card_format('meme', render_meme_card, '😂 STUDENT REALITY CHECK', '😭 NEET & JEE 2027 aspirants start of 11th vs 2 months before exam!', '#StudentMemes #NEETMemes #JEEMemes #Futrix #NEET2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('meme', render_meme_card, target_chat_id=target_chat_id)
     elif 'roadmap' in msg_lower or 'strategy' in msg_lower:
-        dispatch_single_card_format('roadmap', render_roadmap_card, '🗺 HIGH-WEIGHTAGE ROADMAP', '🎯 Top 5 Physics Chapters for 140+ Score in NEET 2027!', '#NEETStrategy #JEEHighWeightage #FutrixRoadmap #EdTech #NEET2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('roadmap', render_roadmap_card, target_chat_id=target_chat_id)
     elif 'news' in msg_lower or 'update' in msg_lower:
-        dispatch_single_card_format('news', render_news_alert_card, '🚨 URGENT NTA BULLETIN', '🚨 Important NTA Registration & Advisory update for NEET/JEE 2027/2028 aspirants!', '#NTANews #NEETUpdate #JEEUpdate #FutrixAlert #NEET2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('news', render_news_alert_card, target_chat_id=target_chat_id)
     elif 'casestudy' in msg_lower or 'proof' in msg_lower or 'story' in msg_lower:
-        dispatch_single_card_format('casestudy', render_casestudy_card, '📈 STUDENT SUCCESS CASE STUDY', '📈 How Ananya boosted her Physics score from 45 to 155 in 60 days using FUTRIX!', '#SuccessStory #FutrixProof #EdTech #SocraticAI #NEET2027', target_chat_id=target_chat_id)
+        dispatch_single_card_format('casestudy', render_casestudy_card, target_chat_id=target_chat_id)
     elif 'publish' in msg_lower:
         parts = user_message.split()
         if len(parts) > 1:
