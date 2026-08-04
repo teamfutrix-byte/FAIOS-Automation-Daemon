@@ -536,9 +536,33 @@ def run_health_server():
     print(f'[HEALTH SERVER] Listening on port {port}')
     server.serve_forever()
 
+def self_ping_loop():
+    """
+    Ping own health endpoint every 8 minutes to prevent Render free plan 15-min sleep.
+    No external service needed — bot keeps itself awake!
+    """
+    import time as _time
+    service_url = os.getenv('RENDER_EXTERNAL_URL', 'https://faios-daemon-247.onrender.com')
+    ping_interval = 8 * 60  # 8 minutes
+    _time.sleep(30)  # Wait for health server to start
+    print(f'[SELF-PING] Starting self-ping loop → {service_url} every 8 min')
+    while True:
+        try:
+            r = requests.get(service_url, timeout=15)
+            print(f'[SELF-PING] ✅ Alive! Status: {r.status_code}')
+        except Exception as e:
+            print(f'[SELF-PING] ⚠️ Ping failed: {e}')
+        _time.sleep(ping_interval)
+
 if __name__ == '__main__':
-    # Start keep-alive HTTP server in background thread (prevents Render free plan sleep)
+    # Thread 1: HTTP health server (Render needs a port to be bound)
     health_thread = threading.Thread(target=run_health_server, daemon=True)
     health_thread.start()
-    print('[STARTUP] Keep-alive health server started. Bot is now 24/7 live on Render!')
+
+    # Thread 2: Self-ping every 8 min to prevent Render free plan sleep
+    ping_thread = threading.Thread(target=self_ping_loop, daemon=True)
+    ping_thread.start()
+
+    print('[STARTUP] ✅ Health server + Self-ping loop started. Bot is 24/7 LIVE on Render!')
     poll_telegram_updates()
+
