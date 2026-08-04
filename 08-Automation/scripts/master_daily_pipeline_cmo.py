@@ -500,8 +500,19 @@ def process_founder_command(user_message, target_chat_id=None):
 
 def poll_telegram_updates():
     global last_update_id
-    print("🚀 FAIOS Master Pipeline v46.0 (Triple-Layer Anti-Duplicate Suite) Started...")
+    print("🚀 FAIOS Master Pipeline (Multi-Stage Dynamic Engine) Started...")
     
+    # Clear historic updates at startup
+    try:
+        init_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset=-1&limit=1"
+        req = urllib.request.Request(init_url)
+        res = json.loads(urllib.request.urlopen(req).read())
+        if res.get('ok') and res.get('result'):
+            last_update_id = res['result'][0]['update_id']
+            print(f"[STARTUP] Acknowledged & cleared past Telegram updates up to offset: {last_update_id}")
+    except Exception as err:
+        print("[STARTUP ERROR] Could not clear telegram updates backlog:", err)
+
     while True:
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset={last_update_id + 1}&timeout=30"

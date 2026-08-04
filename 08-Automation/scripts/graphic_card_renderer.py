@@ -19,7 +19,16 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 FAVICON_PATH = os.path.join(SCRIPT_DIR, "favicon.png")
 HISTORY_FILE = os.path.join(SCRIPT_DIR, "used_topics_history.json")
 
-SOCIAL_CTA_FOOTER = "\n\n🚀 Join India's Most Affordable AI Ecosystem!\n📲 Download FUTRIX App for 24/7 Sub-60s Socratic AI Doubt Solving.\n👉 Link in Bio! @futrix_official"
+SOCIAL_CTA_FOOTER = """
+
+━━━━━━━━━━━━━━━━━━━━
+📲 Download FUTRIX App on Google Play Store for 24/7 Socratic AI Tutor, Memory Lab, and 0% Error Q-Bank!
+🔗 Follow us on Instagram: https://instagram.com/futrix_official
+🔗 Subscribe on YouTube: https://youtube.com/@futrix_official
+🔗 Join Telegram Channel: https://t.me/futrix_official
+
+❤️ Emotional Support: We are a small team of educators and developers working day and night to make premium education affordable for every single aspirant. Your one share and follow gives us the energy to keep going. Please support and share this post!
+"""
 
 # ─────────────────────────── FONT HELPERS ────────────────────────────────────
 
@@ -876,6 +885,51 @@ async def generate_smart_pipeline_content(format_type, past_topics=None):
     gemini_key = os.environ.get("GEMINI_API_KEY")
     raw_content = None
 
+    format_instructions = ""
+    if format_type == "quiz":
+        format_instructions = f"""
+Format-Specific Guidelines for QUIZ:
+- The 'desc' field MUST be formatted as a multiple choice question with 4 options (A, B, C, D) and a clear question statement.
+- Do NOT make it a general text description. It must be an interactive multiple-choice question.
+- Example structure for 'desc':
+"Q: In a monohybrid cross, what is the phenotypic ratio in the F2 generation?\\n\\nA) 1:2:1\\nB) 3:1\\nC) 9:3:3:1\\nD) 1:1"
+"""
+    elif format_type == "formula":
+        format_instructions = """
+Format-Specific Guidelines for FORMULA:
+- The 'desc' field MUST be a high-yield formula cheat sheet listing 3-4 key formulas with their parameters defined.
+- Example structure for 'desc':
+"1. Coulomb Force: F = k*q1*q2/r^2\\n2. Electric Field: E = F/q\\n3. Potential: V = k*q/r\\nWhere k = 1/(4*pi*e0) = 9x10^9 N m^2/C^2"
+"""
+    elif format_type == "meme":
+        format_instructions = """
+Format-Specific Guidelines for MEME:
+- The 'desc' field MUST be a funny, highly relatable student reality check / comparison.
+- Example structure for 'desc':
+"EXPECTATION:\\n'I will finish revision of whole Organic Chemistry today' 🚀\\n\\nREALITY:\\n*Opens Instagram* -> 4 hours of reels gone -> Panic -> sleep 😭"
+"""
+    elif format_type == "roadmap":
+        format_instructions = """
+Format-Specific Guidelines for ROADMAP:
+- The 'desc' field MUST be a step-by-step strategy, weekly plan, or high-weightage priority list.
+- Example structure for 'desc':
+"WEEK 1: Complete Electrostatics (16 Marks)\\nWEEK 2: Current Electricity (12 Marks)\\nWEEK 3: Solve 100+ PYQs & 3 Mock Tests\\nWEEK 4: Formula active recall revision"
+"""
+    elif format_type == "news":
+        format_instructions = """
+Format-Specific Guidelines for NEWS:
+- The 'desc' field MUST be an urgent exam advisory/notice with list of guidelines or warnings.
+- Example structure for 'desc':
+"🚨 NTA EXAM ADVISORY:\\n• Aadhaar Match biometric validation is mandatory\\n• Dress Code: Light color half-sleeve clothing only\\n• Electronic calculators strictly banned"
+"""
+    elif format_type == "casestudy":
+        format_instructions = """
+Format-Specific Guidelines for CASESTUDY:
+- The 'desc' field MUST be a success transformation story of a student showing before vs after scores.
+- Example structure for 'desc':
+"STUDENT: Siddharth from Patna\\n• Before: Stuck at 320/720 in mock tests\\n• After: Boosted to 640/720 in 45 days\\n• Strategy: Daily 20 min doubt clearance on FUTRIX!"
+"""
+
     if format_type == "carousel":
         prompt = f"""
 You are an expert exam preparation content writer for {target_exam} ({subject}).
@@ -913,6 +967,8 @@ Create highly engaging educational content for the format '{format_type}' based 
 Chapter: {chapter}
 Concept: {concept}
 Syllabus Notes: {notes}
+
+{format_instructions}
 
 Requirements:
 1. Write a Hook (0-15s) to capture student attention.
