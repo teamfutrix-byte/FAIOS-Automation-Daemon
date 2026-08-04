@@ -53,29 +53,45 @@ current_draft_asset = None
 def send_telegram_single_photo(file_path, caption, reply_markup=None, target_chat_id=None):
     chat_id = target_chat_id or FOUNDER_CHAT_ID
     boundary = '----WebKitFormBoundaryFAIOS460MA4YWxkTrZu'
-    body = bytearray()
     
-    safe_caption = caption[:1000] if caption else ""
-    
-    body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n{chat_id}\r\n'.encode('utf-8'))
-    body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n{safe_caption}\r\n'.encode('utf-8'))
-    body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n'.encode('utf-8'))
-    
-    if reply_markup:
-        markup_json = json.dumps(reply_markup)
-        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="reply_markup"\r\n\r\n{markup_json}\r\n'.encode('utf-8'))
-        
-    body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="photo"; filename="futrix_playwright_slide.png"\r\nContent-Type: image/png\r\n\r\n'.encode('utf-8'))
-    body.extend(open(file_path, 'rb').read())
-    body.extend(f'\r\n--{boundary}--\r\n'.encode('utf-8'))
+    def build_body(safe_caption, parse_mode="HTML"):
+        body = bytearray()
+        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n{chat_id}\r\n'.encode('utf-8'))
+        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n{safe_caption}\r\n'.encode('utf-8'))
+        if parse_mode:
+            body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\n{parse_mode}\r\n'.encode('utf-8'))
+        if reply_markup:
+            markup_json = json.dumps(reply_markup)
+            body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="reply_markup"\r\n\r\n{markup_json}\r\n'.encode('utf-8'))
+        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="photo"; filename="futrix_playwright_slide.png"\r\nContent-Type: image/png\r\n\r\n'.encode('utf-8'))
+        body.extend(open(file_path, 'rb').read())
+        body.extend(f'\r\n--{boundary}--\r\n'.encode('utf-8'))
+        return body
 
+    safe_caption = caption[:1000] if caption else ""
+    body_data = build_body(safe_caption, "HTML")
     req = urllib.request.Request(
         f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto',
-        data=body,
+        data=body_data,
         headers={'Content-Type': f'multipart/form-data; boundary={boundary}'}
     )
-    res = json.loads(urllib.request.urlopen(req).read())
-    print(f"Telegram Photo Upload Result for chat {chat_id}:", res.get('ok'))
+    try:
+        res = json.loads(urllib.request.urlopen(req).read())
+        print(f"Telegram Photo Upload Result for chat {chat_id}:", res.get('ok'))
+    except Exception as err:
+        print("[TELEGRAM PHOTO ERROR] Failed to send with HTML parse_mode, falling back to plain text:", err)
+        plain_caption = strip_html_tags(safe_caption)
+        body_data_fallback = build_body(plain_caption, parse_mode=None)
+        req_fallback = urllib.request.Request(
+            f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto',
+            data=body_data_fallback,
+            headers={'Content-Type': f'multipart/form-data; boundary={boundary}'}
+        )
+        try:
+            res = json.loads(urllib.request.urlopen(req_fallback).read())
+            print(f"Telegram Photo Upload Fallback Result for chat {chat_id}:", res.get('ok'))
+        except Exception as fallback_err:
+            print("[TELEGRAM PHOTO CRITICAL ERROR] Both HTML and plain text photo sending failed:", fallback_err)
 
 def send_telegram_message(text, reply_markup=None, target_chat_id=None):
     chat_id = target_chat_id or FOUNDER_CHAT_ID
@@ -83,7 +99,19 @@ def send_telegram_message(text, reply_markup=None, target_chat_id=None):
     if reply_markup: payload['reply_markup'] = reply_markup
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage', data=data, headers={'Content-Type': 'application/json'})
-    urllib.request.urlopen(req)
+    try:
+        urllib.request.urlopen(req)
+    except Exception as err:
+        print("[TELEGRAM MSG ERROR] Failed to send message with HTML parse_mode, falling back to plain text:", err)
+        plain_text = strip_html_tags(text)
+        payload_fallback = {'chat_id': chat_id, 'text': plain_text}
+        if reply_markup: payload_fallback['reply_markup'] = reply_markup
+        data_fallback = json.dumps(payload_fallback).encode('utf-8')
+        req_fallback = urllib.request.Request(f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage', data=data_fallback, headers={'Content-Type': 'application/json'})
+        try:
+            urllib.request.urlopen(req_fallback)
+        except Exception as fallback_err:
+            print("[TELEGRAM MSG CRITICAL ERROR] Both HTML and plain text message sending failed:", fallback_err)
 
 def answer_callback_query(callback_id, text):
     try:
