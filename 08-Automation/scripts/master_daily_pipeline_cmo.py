@@ -80,6 +80,8 @@ def send_telegram_single_photo(file_path, caption, reply_markup=None, target_cha
         print(f"Telegram Photo Upload Result for chat {chat_id}:", res.get('ok'))
     except Exception as err:
         print("[TELEGRAM PHOTO ERROR] Failed to send with HTML parse_mode, falling back to plain text:", err)
+        if hasattr(err, 'read'):
+            print("Telegram Error Details (HTML):", err.read().decode('utf-8'))
         plain_caption = strip_html_tags(safe_caption)
         body_data_fallback = build_body(plain_caption, parse_mode=None)
         req_fallback = urllib.request.Request(
@@ -92,6 +94,8 @@ def send_telegram_single_photo(file_path, caption, reply_markup=None, target_cha
             print(f"Telegram Photo Upload Fallback Result for chat {chat_id}:", res.get('ok'))
         except Exception as fallback_err:
             print("[TELEGRAM PHOTO CRITICAL ERROR] Both HTML and plain text photo sending failed:", fallback_err)
+            if hasattr(fallback_err, 'read'):
+                print("Telegram Fallback Error Details:", fallback_err.read().decode('utf-8'))
 
 def send_telegram_message(text, reply_markup=None, target_chat_id=None):
     chat_id = target_chat_id or FOUNDER_CHAT_ID
@@ -103,6 +107,8 @@ def send_telegram_message(text, reply_markup=None, target_chat_id=None):
         urllib.request.urlopen(req)
     except Exception as err:
         print("[TELEGRAM MSG ERROR] Failed to send message with HTML parse_mode, falling back to plain text:", err)
+        if hasattr(err, 'read'):
+            print("Telegram Msg Error Details (HTML):", err.read().decode('utf-8'))
         plain_text = strip_html_tags(text)
         payload_fallback = {'chat_id': chat_id, 'text': plain_text}
         if reply_markup: payload_fallback['reply_markup'] = reply_markup
@@ -112,6 +118,8 @@ def send_telegram_message(text, reply_markup=None, target_chat_id=None):
             urllib.request.urlopen(req_fallback)
         except Exception as fallback_err:
             print("[TELEGRAM MSG CRITICAL ERROR] Both HTML and plain text message sending failed:", fallback_err)
+            if hasattr(fallback_err, 'read'):
+                print("Telegram Msg Fallback Error Details:", fallback_err.read().decode('utf-8'))
 
 def answer_callback_query(callback_id, text):
     try:
