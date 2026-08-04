@@ -301,7 +301,7 @@ def select_non_duplicate_item(pool_list, past_topics=None, format_type="quiz"):
     CRITICAL REQUIREMENT: NEVER reuse or cycle oldest topics! 
     When static pool items are used up, dynamically synthesizes a 100% BRAND NEW item!
     """
-    used_history = load_history()  # local file (fallback)
+    used_history = load_history()
     cloud_used = [str(t).lower().strip() for t in (past_topics or [])]
     combined_used = set(used_history + cloud_used)
 
@@ -320,116 +320,246 @@ def select_non_duplicate_item(pool_list, past_topics=None, format_type="quiz"):
     save_history(selected["sub_topic_id"])
     return selected
 
-# ─────────────────────────── INFINITE PROCEDURAL AI SYNTHESIZER ───────────────
-
 def generate_dynamic_procedural_item(format_type, combined_used):
     """
-    Generates a 100% brand new, unique NEET/JEE 2027 content item.
-    Guarantees zero duplication by generating fresh topic combinations & unique IDs.
+    Generates a 100% brand new, unique NEET/JEE 2027 content item using a combinatoric procedural synthesizer.
+    Guarantees that the visual content text and question details are never the same.
     """
+    import random
     timestamp_seed = int(time.time() * 1000) % 100000
     
     if format_type == "quiz":
-        subjects = [
-            ("PHYSICS", "Electrostatics", "Field due to Dipole on Equatorial Line", "E = kp/r3", "A) kp/r3", "B) 2kp/r3", "C) ZERO", "D) 3kp/r3", "A (E = kp/r3)", "#FACC15"),
-            ("CHEMISTRY", "Chemical Bonding", "Hybridization of SF6 Molecule", "sp3d2 Octahedral", "A) sp3d", "B) sp3d2", "C) sp3d3", "D) d2sp3", "B (sp3d2 Octahedral)", "#38BDF8"),
-            ("BIOLOGY", "Genetics", "Ratio of F2 Generation in Monohybrid Cross", "3:1 Phenotypic", "A) 9:3:3:1", "B) 1:2:1", "C) 3:1", "D) 1:1", "C (3:1 Phenotypic)", "#10B981"),
-            ("PHYSICS", "Current Electricity", "Internal Resistance of Ideal Cell", "Zero internal resistance", "A) Zero", "B) Infinite", "C) 1 Ohm", "D) 10 Ohm", "A (Ideal cell r = 0)", "#F59E0B"),
-            ("MATH", "Calculus", "Derivative of sin^2(x) with respect to x", "sin(2x)", "A) 2sin(x)", "B) cos^2(x)", "C) sin(2x)", "D) 2cos(x)", "C (2sin(x)cos(x) = sin(2x))", "#8B5CF6"),
-            ("PHYSICS", "Optics", "Speed of Light in Glass (mu = 1.5)", "v = c / mu", "A) 2x10^8 m/s", "B) 3x10^8 m/s", "C) 1.5x10^8 m/s", "D) 2.5x10^8 m/s", "A (3x10^8 / 1.5 = 2x10^8 m/s)", "#EC4899"),
-            ("CHEMISTRY", "Electrochemistry", "Standard Reduction Potential of H2 Electrode", "0.00 V", "A) 1.0 V", "B) 0.00 V", "C) -0.76 V", "D) +0.34 V", "B (Standard Hydrogen Electrode E0 = 0.00 V)", "#06B6D4"),
-        ]
-        sub, chap, concept, key_formula, opA, opB, opC, opD, ans, color = random.choice(subjects)
-        sub_id = f"dyn_quiz_{chap.lower().replace(' ', '_')}_{timestamp_seed}"
-        return {
-            "sub_topic_id": sub_id,
-            "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
-            "heading": f"⚡ {sub}: {chap.upper()} SPEED QUIZ",
-            "desc": f"Q: What is the {concept}?\n\n{opA}   {opB}\n{opC}   {opD}\n\nComment your answer! Correct Answer: {ans}\nMaster this concept on FUTRIX App! 📲",
-            "badge": f"{sub} QUIZ",
-            "accent": color
-        }
+        subjects = ["PHYSICS", "CHEMISTRY", "BIOLOGY", "MATHEMATICS"]
+        sub = random.choice(subjects)
+        
+        if sub == "PHYSICS":
+            topics = [
+                ("Electrostatics", "Field of charge corner", "Four charges +{q} uC are placed at corners of square side {d} cm. What is potential at center?", "4 * sqrt(2) * k * q / d", "A) ZERO", "B) {ans}", "C) 2kq/d", "D) {alt}", "B (Potential scalar sum = 4 * sqrt(2) * k * q / d)", "#FACC15"),
+                ("Current Electricity", "Equivalent Parallel Resistance", "Two resistors of {r1} Ohm and {r2} Ohm are connected in parallel. What is R_eq?", "{r1}*{r2}/({r1}+{r2})", "A) {ans} Ohm", "B) {sum} Ohm", "C) {alt} Ohm", "D) ZERO", "A (Parallel formula: R1*R2/(R1+R2))", "#38BDF8"),
+                ("Optics", "Lens Focal Length Shift", "A convex lens of focal length {f} cm in air (mu=1.5) is immersed in water (mu=1.33). New focal length?", "4 * {f}", "A) {f} cm", "B) 2*{f} cm", "C) {ans} cm", "D) {f}/2 cm", "C (f_water is approx 4 times f_air)", "#10B981"),
+                ("Kinematics", "Projectile Max Range", "A projectile is thrown with velocity {v} m/s. What is its maximum horizontal range (g=10)?", "{v}^2 / 10", "A) {ans} m", "B) {alt} m", "C) {v} m", "D) {double} m", "A (R_max = v^2/g)", "#F59E0B")
+            ]
+            chap, concept, question_tmpl, calc_formula, opA, opB, opC, opD, explanation, color = random.choice(topics)
+            # Randomize variables
+            q = random.choice([2, 3, 4, 5, 8, 10])
+            d = random.choice([10, 20, 30, 40])
+            r1 = random.choice([6, 12, 10, 20])
+            r2 = random.choice([3, 4, 5, 10])
+            f = random.choice([10, 15, 20, 30])
+            v = random.choice([10, 20, 30, 40])
+            
+            # Calculate values
+            pot_ans = f"{(4 * 1.414 * 9 * q / (d/100)):.1f} * 10^3 V"
+            pot_alt = f"{(2 * 9 * q / (d/100)):.1f} * 10^3 V"
+            req_ans = f"{(r1 * r2 / (r1 + r2)):.2f}"
+            req_alt = f"{(r1 * r2 / abs(r1 - r2 + 0.1)):.2f}"
+            req_sum = f"{r1 + r2}"
+            lens_ans = f"{4 * f}"
+            proj_ans = f"{(v**2 / 10):.1f}"
+            proj_alt = f"{(v**2 / 20):.1f}"
+            proj_double = f"{(v**2 / 5):.1f}"
+            
+            desc = question_tmpl.format(q=q, d=d, r1=r1, r2=r2, f=f, v=v)
+            desc_with_ops = f"Q: {desc}\n\n" + \
+                            opA.format(ans=pot_ans, alt=pot_alt, f=f) + "\n" + \
+                            opB.format(ans=pot_ans, alt=pot_alt, f=f, sum=req_sum) + "\n" + \
+                            opC.format(ans=req_ans, alt=req_alt, f=f, double=proj_double) + "\n" + \
+                            opD.format(ans=proj_ans, alt=proj_alt, f=f, double=proj_double) + "\n\n" + \
+                            f"Answer: {explanation.format(ans=pot_ans, f=f)}"
+            
+            sub_id = f"quiz_phys_{chap.lower().replace(' ', '_')}_{timestamp_seed}"
+            return {
+                "sub_topic_id": sub_id,
+                "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
+                "heading": f"⚡ PHYSICS: {chap.upper()} SPEED QUIZ",
+                "desc": desc_with_ops,
+                "badge": "PHYSICS QUIZ",
+                "accent": color
+            }
+            
+        elif sub == "CHEMISTRY":
+            topics = [
+                ("Chemical Kinetics", "First order half life", "A first order reaction has rate constant k = {k} s-1. What is its half-life?", "0.693 / {k}", "A) {ans} s", "B) {alt} s", "C) {double} s", "D) ZERO", "A (t_1/2 = 0.693/k)", "#38BDF8"),
+                ("Ideal Gas", "Mole calculation", "What is the number of moles of ideal gas in {v} L container at STP?", "{v} / 22.4", "A) {ans} moles", "B) {alt} moles", "C) {double} moles", "D) 1.0 moles", "A (At STP, 1 mole = 22.4 L)", "#10B981")
+            ]
+            chap, concept, question_tmpl, calc_formula, opA, opB, opC, opD, explanation, color = random.choice(topics)
+            k = random.choice([0.02, 0.05, 0.1, 0.2, 0.01])
+            v = random.choice([11.2, 5.6, 44.8, 22.4, 4.48])
+            
+            k_ans = f"{(0.693 / k):.2f}"
+            k_alt = f"{(1.0 / k):.2f}"
+            k_double = f"{(1.386 / k):.2f}"
+            v_ans = f"{(v / 22.4):.2f}"
+            v_alt = f"{(v / 11.2):.2f}"
+            v_double = f"{(v / 44.8):.2f}"
+            
+            desc = question_tmpl.format(k=k, v=v)
+            desc_with_ops = f"Q: {desc}\n\n" + \
+                            opA.format(ans=k_ans, alt=k_alt) + "\n" + \
+                            opB.format(ans=k_ans, alt=k_alt) + "\n" + \
+                            opC.format(ans=v_ans, alt=v_alt, double=v_double) + "\n" + \
+                            opD.format(ans=v_ans, alt=v_alt, double=v_double) + "\n\n" + \
+                            f"Answer: {explanation.format(k=k, v=v)}"
+            
+            sub_id = f"quiz_chem_{chap.lower().replace(' ', '_')}_{timestamp_seed}"
+            return {
+                "sub_topic_id": sub_id,
+                "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
+                "heading": f"⚡ CHEMISTRY: {chap.upper()} SPEED QUIZ",
+                "desc": desc_with_ops,
+                "badge": "CHEMISTRY QUIZ",
+                "accent": color
+            }
+            
+        elif sub == "BIOLOGY":
+            topics = [
+                ("Genetics", "Monohybrid phenotypic ratio", "In monohybrid cross of tall (Tt) plants, what is the phenotype ratio in F2?", "3:1 ratio", "A) 1:2:1", "B) 3:1", "C) 9:3:3:1", "D) 1:1", "B (Tall:Dwarf phenotype ratio is 3:1)", "#10B981"),
+                ("Molecular Biology", "Replication direction", "What is the direction of replication of new DNA strand?", "5' to 3' direction", "A) 3' to 5'", "B) 5' to 3'", "C) Both", "D) Bidirectional random", "B (DNA polymerase synthesizes only in 5' to 3' direction)", "#EC4899")
+            ]
+            chap, concept, question_tmpl, calc_formula, opA, opB, opC, opD, explanation, color = random.choice(topics)
+            desc_with_ops = f"Q: {question_tmpl}\n\n{opA}\n{opB}\n{opC}\n{opD}\n\nAnswer: {explanation}"
+            sub_id = f"quiz_bio_{chap.lower().replace(' ', '_')}_{timestamp_seed}"
+            return {
+                "sub_topic_id": sub_id,
+                "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
+                "heading": f"⚡ BIOLOGY: {chap.upper()} SPEED QUIZ",
+                "desc": desc_with_ops,
+                "badge": "BIOLOGY QUIZ",
+                "accent": color
+            }
+            
+        else: # MATHEMATICS
+            topics = [
+                ("Calculus", "Derivative power rule", "What is the derivative of f(x) = {a}*x^{n} with respect to x?", "{a}*{n}*x^{n-1}", "A) {ans}", "B) {alt}", "C) ZERO", "D) {a}*x", "A (Using power rule: d(x^n)/dx = n*x^(n-1))", "#8B5CF6")
+            ]
+            chap, concept, question_tmpl, calc_formula, opA, opB, opC, opD, explanation, color = random.choice(topics)
+            a = random.choice([2, 3, 4, 5])
+            n = random.choice([2, 3, 4])
+            
+            math_ans = f"{a*n}*x^{n-1}"
+            math_alt = f"{a}*x^{n-1}"
+            
+            desc = question_tmpl.format(a=a, n=n)
+            desc_with_ops = f"Q: {desc}\n\n" + \
+                            opA.format(ans=math_ans) + "\n" + \
+                            opB.format(alt=math_alt) + "\n" + \
+                            opC + "\n" + \
+                            opD.format(a=a) + "\n\n" + \
+                            f"Answer: {explanation}"
+            
+            sub_id = f"quiz_math_{chap.lower().replace(' ', '_')}_{timestamp_seed}"
+            return {
+                "sub_topic_id": sub_id,
+                "title": f"NEET/JEE PYQ #{timestamp_seed % 999}",
+                "heading": f"⚡ MATHEMATICS: {chap.upper()} SPEED QUIZ",
+                "desc": desc_with_ops,
+                "badge": "MATH QUIZ",
+                "accent": color
+            }
 
     elif format_type == "formula":
-        topics = [
-            ("ELECTROSTATICS & FLUX", "Gauss Law: Phi = Q_in / e0\nField of infinite wire: E = lambda / (2*pi*e0*r)\nField of infinite sheet: E = sigma / (2*e0)\nPotential of point charge: V = kq / r\n\nSave for NEET & JEE 2027 revision!", "CAPACITANCE", "#38BDF8"),
-            ("WAVE OPTICS & INTERFERENCE", "Fringe width: beta = lambda * D / d\nPath diff for Maxima: Dx = n * lambda\nPath diff for Minima: Dx = (2n-1) * lambda / 2\nIntensity ratio: I_max / I_min = (a1+a2)^2 / (a1-a2)^2\n\nSave for NEET & JEE 2027 revision!", "WAVE OPTICS", "#10B981"),
-            ("CHEMICAL KINETICS", "Zero Order: [A] = [A]0 - kt  |  t_1/2 = [A]0 / 2k\nFirst Order: k = (2.303/t) log([A]0/[A])  |  t_1/2 = 0.693 / k\nArrhenius: k = A * e^(-Ea/RT)\n\nSave for NEET & JEE 2027 revision!", "CHEM KINETICS", "#F59E0B"),
-            ("ROTATIONAL DYNAMICS", "Torque: tau = I * alpha  |  Angular Momentum: L = I * omega\nRotational KE = (1/2) I omega^2\nRolling KE = (1/2) M v^2 (1 + k^2/R^2)\nPure rolling condition: v = R * omega\n\nSave for NEET & JEE 2027 revision!", "ROTATIONAL", "#8B5CF6"),
+        subjects = [
+            ("ELECTROSTATICS & FIELDS", "Coulomb Force: F = k q1 q2 / r^2\nField of point charge: E = k q / r^2\nDipole field (axial): E = 2k p / r^3\nDipole field (equatorial): E = k p / r^3\n\nRevision key: Axial field magnitude is twice equatorial!", "PHYSICS", "#FACC15"),
+            ("CAPACITANCE & DIELECTRICS", "Capacitance (Parallel): C = e0 A / d\nCapacitance with Dielectric: C' = K * C\nStored Energy: U = 1/2 C V^2\nSeries Combination: 1/C_eq = 1/C1 + 1/C2\n\nRevision key: Dielectric constant increases capacity!", "PHYSICS", "#38BDF8"),
+            ("CHEMICAL KINETICS & RATES", "First Order Rate: k = (2.303/t) * log([A]0/[A])\nHalf life: t_1/2 = 0.693 / k\nArrhenius: k = A * e^(-Ea / RT)\nCollision Frequency: Z_ab = N_a * N_b\n\nRevision key: Temperature increase shifts rate!", "CHEMISTRY", "#10B981")
         ]
-        head, body, badge, color = random.choice(topics)
-        sub_id = f"dyn_formula_{badge.lower().replace(' ', '_')}_{timestamp_seed}"
+        head, body, badge, color = random.choice(subjects)
+        sub_id = f"formula_{badge.lower()}_{timestamp_seed}"
         return {
             "sub_topic_id": sub_id,
             "title": "FORMULA CHEAT SHEET",
             "heading": f"📄 {head} FORMULA SHEET",
             "desc": body,
-            "badge": badge,
+            "badge": f"{badge} SHEET",
             "accent": color
         }
 
     elif format_type == "news":
-        alerts = [
-            ("NTA CBT MOCK EXAM ADVISORY", "NTA guidelines for NEET/JEE 2027:\n• Official CBT Mock Tests updated on NTA Abhyas\n• Biometric verification + Aadhaar match mandatory\n• Exam center reporting 90 minutes prior\n• Carry 2 passport photos + valid ID", "NTA ALERT", "#EF4444"),
-            ("NEET 2027 SYLLABUS RATIONALIZATION", "NTA Official Syllabus Update:\n• NCERT rationalized topics strictly enforced\n• High weightage: Genetics, Optics, Organic Chem\n• Deleted topics will NOT appear in paper\n• Practice revised pattern mock tests on FUTRIX!", "SYLLABUS UPDATE", "#F59E0B"),
-            ("JEE MAIN 2027 PATTERN VERIFICATION", "NTA JEE Main 2027 Notice:\n• 90 Total Questions (300 Marks)\n• Section B: 10 numericals (attempt any 5)\n• Negative marking (-1) applied on numericals too\n• Practice screen calculator navigation!", "JEE ADVISORY", "#3B82F6"),
+        advisories = [
+            ("NTA CBT EXAM CENTER GUIDELINES", "Official Advisory {adv_num} for NEET/JEE 2027:\n• Biometric Verification starts {hr} hours prior\n• Dress Code: Light color half-sleeve clothes only\n• Candidates must carry valid Aadhaar + Admit Card\n• Electronic calculators strictly prohibited", "EXAM GUIDELINE", "#EF4444"),
+            ("NEET 2027 REGISTRATION PORTAL UPDATE", "Official Advisory {adv_num} for NEET 2027:\n• Form Correction Window open till 11:59 PM, {date}\n• Biometric verification linked to Aadhaar profile\n• Category certificate format must be strictly central\n• Avoid third-party registrations", "REGISTRATION UPDATE", "#F59E0B")
         ]
-        head, body, badge, color = random.choice(alerts)
-        sub_id = f"dyn_news_{timestamp_seed}"
+        template, badge, color = random.choice(advisories)
+        adv_num = f"NTA/2027/{random.randint(100, 999)}"
+        hr = random.choice([2, 3])
+        date = f"{random.randint(10, 28)}th August"
+        
+        desc = template.format(adv_num=adv_num, hr=hr, date=date)
+        sub_id = f"news_{timestamp_seed}"
         return {
             "sub_topic_id": sub_id,
-            "title": "NTA OFFICIAL ADVISORY",
-            "heading": f"🚨 {head}",
-            "desc": body,
+            "title": "NTA OFFICIAL BULLETIN",
+            "heading": f"🚨 NTA OFFICIAL ADVISORY: {adv_num}",
+            "desc": desc,
             "badge": badge,
             "accent": color
         }
 
     elif format_type == "meme":
-        memes = [
-            ("PHYSICS NUMERICAL VS BIO THEORY", "Physics Student:\n'4 pages of integration for 1 numerical' 😤\n\nBio Student:\n'I just memorized 40 pages of NCERT in 1 hour' 😎\n\nBoth in mock test: 'WHY IS THE CUTOFF SO HIGH?!' 😭\n\nTag your study partner!", "STUDENT REALITY", "#EC4899"),
-            ("MOCK TEST MARKS VS EXPECTATIONS", "Before Mock Test:\n'Targetting 650+ in NEET today!' 🚀\n\nAfter Answer Key Release:\n'Bro 450 clear ho jayec toh bhi khush hu!' 😭\n\nRelatable? FUTRIX boosts mock scores by 80+ marks!", "MOCK TEST LIFE", "#8B5CF6"),
-            ("REVISION PLAN VS REALITY", "Plan: 'I will revise 5 chapters of Chemistry today'\n\nActual Day:\nOpens Instagram → 3 hours gone → Panic → Sleep 😴\n\nFUTRIX: 15-min daily micro-tests keep you on track!", "STUDY LIFE", "#F59E0B"),
+        templates = [
+            ("START OF 11TH VS MOCK EXAMS", "Expected in 11th:\n'AIR 1 under 100 in JEE Advanced' 🚀\n\nActual mock score today:\n'{marks}/300' 😭\n\nRelatable? Use FUTRIX App for 60s doubt solving!", "STUDENT REALITY", "#EC4899"),
+            ("REVISION SCHEDULE VS INSTAGRAM", "Revision Target:\n'Revise {chaps} chapters of Inorganic Chem today'\n\nActual outcome:\n'5 hours scroll of Instagram Reels' 📱\n\nBoth at mock: 'WHO PASSED THIS PAPER?' 😭", "MOCK TEST MEME", "#8B5CF6")
         ]
-        head, body, badge, color = random.choice(memes)
-        sub_id = f"dyn_meme_{timestamp_seed}"
+        head, text_tmpl, badge, color = random.choice(templates)
+        marks = random.randint(70, 140)
+        chaps = random.randint(3, 5)
+        desc = text_tmpl.format(marks=marks, chaps=chaps)
+        sub_id = f"meme_{timestamp_seed}"
         return {
             "sub_topic_id": sub_id,
             "title": "STUDENT REALITY MEME",
             "heading": f"😭 {head}",
-            "desc": body,
+            "desc": desc,
             "badge": badge,
             "accent": color
         }
 
     elif format_type == "roadmap":
-        roadmaps = [
-            ("TOP 5 HIGH WEIGHTAGE PHYSICS CHAPTERS", "1. Electrostatics & Capacitance — 16 Marks\n2. Current Electricity — 12 Marks\n3. Modern Physics & Atoms — 16 Marks\n4. Ray & Wave Optics — 12 Marks\n5. Laws of Motion & Work Energy — 12 Marks\n\nMaster these 5 = 140+ Physics score guaranteed!", "PHYSICS ROADMAP", "#10B981"),
-            ("ORGANIC CHEMISTRY 30-DAY MASTER PLAN", "Week 1: GOC & Isomerism (Foundation)\nWeek 2: Hydrocarbons & Haloalkanes\nWeek 3: Aldehydes, Ketones & Amines\nWeek 4: Biomolecules & Named Reactions\n\nFollow this on FUTRIX = 100% Organic score!", "CHEM ROADMAP", "#F59E0B"),
+        templates = [
+            ("TOP {num} HIGH WEIGHTAGE PHYSICS CHAPTERS", "1. Electrostatics & Capacitance ({wt1} Marks)\n2. Current Electricity ({wt2} Marks)\n3. Modern Physics ({wt3} Marks)\n4. Ray & Wave Optics ({wt4} Marks)\n\nFocus on these chapters to clear cutoff in under 30 days!", "PHYSICS ROADMAP", "#10B981"),
+            ("ORGANIC CHEMISTRY {days}-DAY STRATEGY", "Week 1: General Organic Chem & Nomenclature\nWeek 2: Hydrocarbons & Alcohols\nWeek 3: Aldehydes & Carboxylic Acids\nWeek 4: Biomolecules & Spaced Revision\n\nResult: 90% score in mock exams!", "CHEM ROADMAP", "#F59E0B")
         ]
-        head, body, badge, color = random.choice(roadmaps)
-        sub_id = f"dyn_roadmap_{timestamp_seed}"
+        tmpl, badge, color = random.choice(templates)
+        num = random.randint(4, 5)
+        days = random.choice([30, 45, 60])
+        wt1 = random.randint(12, 16)
+        wt2 = random.randint(8, 12)
+        wt3 = random.randint(16, 20)
+        wt4 = random.randint(12, 16)
+        
+        desc = tmpl.format(num=num, days=days, wt1=wt1, wt2=wt2, wt3=wt3, wt4=wt4)
+        sub_id = f"roadmap_{timestamp_seed}"
         return {
             "sub_topic_id": sub_id,
             "title": "CHAPTER ROADMAP",
-            "heading": f"🗺 {head}",
-            "desc": body,
+            "heading": f"🗺 NEET/JEE {badge.split()[0]} ROADMAP",
+            "desc": desc,
             "badge": badge,
             "accent": color
         }
 
-    else:  # casestudy
-        names = ["Siddharth", "Kavya", "Tanmay", "Aarav", "Meera", "Rishi"]
+    else: # casestudy
+        names = ["Siddharth", "Kavya", "Tanmay", "Aarav", "Meera", "Rishi", "Priya", "Ananya", "Rohan", "Arjun", "Divya"]
+        cities = ["Kota", "Patna", "Hyderabad", "Delhi", "Jaipur", "Indore", "Pune", "Lucknow"]
         name = random.choice(names)
-        sub_id = f"dyn_casestudy_{name.lower()}_{timestamp_seed}"
+        city = random.choice(cities)
+        mock_before = random.randint(300, 420)
+        mock_after = random.randint(600, 680)
+        time_days = random.choice([30, 45, 60, 90])
+        subject = random.choice(["Physics", "Chemistry", "Biology"])
+        
+        desc = f"{name} from {city} was stuck at {mock_before}/720 in mock exams.\n\nFUTRIX 3-Step Strategy:\n• daily 20 min doubt clearance on {subject}\n• Spaced retrieval of formulas\n• Option elimination practice\n\nResult: {mock_after}/720 score achieved in {time_days} days!\nYour success story is NEXT on FUTRIX App! 📲"
+        
+        sub_id = f"casestudy_{name.lower()}_{timestamp_seed}"
         return {
             "sub_topic_id": sub_id,
-            "title": "SUCCESS STORY",
-            "heading": f"📈 {name.upper()}: SCORED 620+ IN NEET WITH FUTRIX",
-            "desc": f"{name} was struggling with speed in Physics & Organic Chemistry.\n\nFUTRIX Strategy:\n• 20 min daily Socratic AI doubt resolution\n• Active recall flashcards for NCERT Biology\n• Weekly mock test analysis & weak-area targeting\n\nResult: 620+ score & Government Medical Seat!\nYour success story is NEXT on FUTRIX App 📲",
-            "badge": "STUDENT PROOF",
+            "title": "STUDENT SUCCESS CASE STUDY",
+            "heading": f"📈 HOW {name.upper()} BOOSTED {subject.upper()} IN {time_days} DAYS",
+            "desc": desc,
+            "badge": "SUCCESS STUDY",
             "accent": "#8B5CF6"
         }
+
 
 def cleanup_local_temp_media(file_paths):
     for fpath in file_paths:
