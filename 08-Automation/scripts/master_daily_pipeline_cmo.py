@@ -232,26 +232,22 @@ def dispatch_full_5_slide_carousel(target_chat_id=None):
 def dispatch_blog_post(topic_str="", target_chat_id=None):
     global current_draft_asset
     past_topics = get_past_topics_from_sheets()
-    header_img_path, blog_title, intro_text, points_list = asyncio.run(render_blog_post_image(topic_str, past_topics))
+    header_img_path, item = asyncio.run(render_blog_post_image(topic_str, past_topics))
     
-    points_str = "\n".join([f"• {p}" for p in points_list])
-    blog_text = f"<b>📝 OFFICIAL FUTRIX BLOG ARTICLE</b>\n\n" \
-                f"<b>Title: {blog_title}</b>\n\n" \
-                f"<b>1. Introduction:</b>\n" \
-                f"{intro_text}\n\n" \
-                f"<b>2. Key Takeaways:</b>\n" \
-                f"{points_str}\n\n" \
-                f"<b>3. Conclusion:</b>\n" \
-                f"The future of competitive exam prep is personalized, instant, and adaptive." + SOCIAL_CTA_FOOTER
+    blog_title = item.get("title", "Socratic AI Prep")
+    blog_text = item.get("caption", "") + SOCIAL_CTA_FOOTER
+    used_sub_topic_id = item.get("sub_topic_id")
+    if used_sub_topic_id:
+        log_used_topic_to_sheets(used_sub_topic_id, 'blog')
 
-    asset_id = f"blog_{int(time.time())}"
+    asset_id = f"blog_{used_sub_topic_id}_{int(time.time())}"
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': [header_img_path],
         'pdf': header_img_path,
         'title': blog_title,
         'caption': blog_text,
-        'hashtags': '#FutrixBlog #NEET2027 #JEE2027 #EdTech #SocraticAI #Futrix'
+        'hashtags': item.get("hashtags", '#FutrixBlog #NEET2027 #JEE2027')
     }
 
     photo_caption = f"<b>📝 OFFICIAL FUTRIX BLOG ARTICLE</b>\n\n<b>Title:</b> {blog_title}\n\n<i>Header card generated. Review full SEO Article below & tap Approve 👇</i>"
@@ -306,8 +302,19 @@ def dispatch_single_card_format(fmt_name, async_render_func, target_chat_id=None
 
     title_badge = f"⚡ {item.get('title', fmt_name.upper())}"
     heading_text = str(item.get('heading', '')).replace("⚡", "").strip()
-    caption_text = f"❓ <b>{heading_text}</b>\n\n🎯 Master this high-yield {subject_name} concept for NEET & JEE 2027/2028 prep on FUTRIX!"
-    hashtags_str = f"{subject_tags} #Futrix #EdTech #StudySmart #ExamPrep"
+    
+    # Use dynamic caption & hashtags from Gemini/OpenRouter if available
+    raw_caption = item.get('caption')
+    if raw_caption:
+        caption_text = raw_caption
+    else:
+        caption_text = f"❓ <b>{heading_text}</b>\n\n🎯 Master this high-yield {subject_name} concept for NEET & JEE 2027/2028 prep on FUTRIX!"
+        
+    raw_hashtags = item.get('hashtags')
+    if raw_hashtags:
+        hashtags_str = raw_hashtags
+    else:
+        hashtags_str = f"{subject_tags} #Futrix #EdTech #StudySmart #ExamPrep"
 
     asset_id = f"{fmt_name}_{used_sub_topic_id}_{int(time.time())}"
     current_draft_asset = {

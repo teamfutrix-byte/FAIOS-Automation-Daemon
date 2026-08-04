@@ -479,7 +479,7 @@ def generate_dynamic_procedural_item(format_type, combined_used):
             ("NTA CBT EXAM CENTER GUIDELINES", "Official Advisory {adv_num} for NEET/JEE 2027:\n• Biometric Verification starts {hr} hours prior\n• Dress Code: Light color half-sleeve clothes only\n• Candidates must carry valid Aadhaar + Admit Card\n• Electronic calculators strictly prohibited", "EXAM GUIDELINE", "#EF4444"),
             ("NEET 2027 REGISTRATION PORTAL UPDATE", "Official Advisory {adv_num} for NEET 2027:\n• Form Correction Window open till 11:59 PM, {date}\n• Biometric verification linked to Aadhaar profile\n• Category certificate format must be strictly central\n• Avoid third-party registrations", "REGISTRATION UPDATE", "#F59E0B")
         ]
-        template, badge, color = random.choice(advisories)
+        head, template, badge, color = random.choice(advisories)
         adv_num = f"NTA/2027/{random.randint(100, 999)}"
         hr = random.choice([2, 3])
         date = f"{random.randint(10, 28)}th August"
@@ -489,7 +489,7 @@ def generate_dynamic_procedural_item(format_type, combined_used):
         return {
             "sub_topic_id": sub_id,
             "title": "NTA OFFICIAL BULLETIN",
-            "heading": f"🚨 NTA OFFICIAL ADVISORY: {adv_num}",
+            "heading": f"🚨 NTA OFFICIAL ADVISORY: {head}",
             "desc": desc,
             "badge": badge,
             "accent": color
@@ -519,7 +519,7 @@ def generate_dynamic_procedural_item(format_type, combined_used):
             ("TOP {num} HIGH WEIGHTAGE PHYSICS CHAPTERS", "1. Electrostatics & Capacitance ({wt1} Marks)\n2. Current Electricity ({wt2} Marks)\n3. Modern Physics ({wt3} Marks)\n4. Ray & Wave Optics ({wt4} Marks)\n\nFocus on these chapters to clear cutoff in under 30 days!", "PHYSICS ROADMAP", "#10B981"),
             ("ORGANIC CHEMISTRY {days}-DAY STRATEGY", "Week 1: General Organic Chem & Nomenclature\nWeek 2: Hydrocarbons & Alcohols\nWeek 3: Aldehydes & Carboxylic Acids\nWeek 4: Biomolecules & Spaced Revision\n\nResult: 90% score in mock exams!", "CHEM ROADMAP", "#F59E0B")
         ]
-        tmpl, badge, color = random.choice(templates)
+        head, tmpl, badge, color = random.choice(templates)
         num = random.randint(4, 5)
         days = random.choice([30, 45, 60])
         wt1 = random.randint(12, 16)
@@ -532,11 +532,12 @@ def generate_dynamic_procedural_item(format_type, combined_used):
         return {
             "sub_topic_id": sub_id,
             "title": "CHAPTER ROADMAP",
-            "heading": f"🗺 NEET/JEE {badge.split()[0]} ROADMAP",
+            "heading": f"🗺 {head.format(num=num, days=days)}",
             "desc": desc,
             "badge": badge,
             "accent": color
         }
+
 
     else: # casestudy
         names = ["Siddharth", "Kavya", "Tanmay", "Aarav", "Meera", "Rishi", "Priya", "Ananya", "Rohan", "Arjun", "Divya"]
@@ -833,12 +834,179 @@ SYLLABUS_PILLARS = [
      ]},
 ]
 
+# ─────────────────────────── MULTI-STAGE SMART PIPIELINE ENGINE ──────────────
+
+async def generate_smart_pipeline_content(format_type, past_topics=None):
+    """
+    Core FAIOS Content Pipeline Logic:
+    1. Discovers unique topic from syllabus (Apify/Local Fallback)
+    2. Writes custom educational script using Gemini
+    3. Formats & polishes content using OpenRouter
+    4. Renders Pillow graphic card or slides
+    5. Returns (main_image_path, post_dict) or (list_of_slide_paths, main_image_path, post_dict)
+    """
+    from smart_syllabus_research import research_syllabus_topic
+    from openrouter_formatter import polish_and_structure_content
+    import requests
+
+    # Stage 1: Apify / local syllabus research
+    topic_info = research_syllabus_topic(format_type, past_topics)
+    topic_id = topic_info["topic_id"]
+    target_exam = topic_info["target_exam"]
+    subject = topic_info["subject"]
+    chapter = topic_info["chapter"]
+    concept = topic_info["concept"]
+    notes = topic_info["notes"]
+
+    # Determine accent color
+    COLOR_MAP = {
+        "PHYSICS": "#FACC15",
+        "CHEMISTRY": "#38BDF8",
+        "BIOLOGY": "#10B981",
+        "MATHEMATICS": "#8B5CF6",
+        "MATH": "#8B5CF6",
+        "PATHOLOGY": "#EF4444",
+        "PHARMACOLOGY": "#F59E0B",
+        "PEDIATRICS": "#EC4899",
+        "INTERNAL MEDICINE": "#06B6D4"
+    }
+    color = COLOR_MAP.get(subject.upper(), "#6366F1")
+
+    # Stage 2: Google Gemini script writer
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    raw_content = None
+
+    if format_type == "carousel":
+        prompt = f"""
+You are an expert exam preparation content writer for {target_exam} ({subject}).
+Create a 5-slide carousel presentation deck based on:
+Chapter: {chapter}
+Concept: {concept}
+Syllabus Notes: {notes}
+
+Requirements:
+- Slide 1: Introduction/Hook to grab attention.
+- Slide 2: Core theory or concept breakdown.
+- Slide 3: Practical application or formula shortcut.
+- Slide 4: Real sample PYQ question to solve.
+- Slide 5: CTA (Join FUTRIX App for sub-60s doubt clearance).
+
+Output strictly a raw JSON block (no markdown, just raw JSON) matching this structure:
+{{
+  "title": "Clean short title",
+  "badge": "{subject} CAROUSEL",
+  "caption": "Viral post caption text with footer CTA",
+  "hashtags": "#Hashtag1 #Hashtag2 #Hashtag3 #Hashtag4 #Hashtag5",
+  "slides": [
+    {{"badge": "SLIDE 1", "title": "Slide 1 Title", "desc": "Slide 1 description text", "accent": "{color}"}},
+    {{"badge": "SLIDE 2", "title": "Slide 2 Title", "desc": "Slide 2 description text", "accent": "{color}"}},
+    {{"badge": "SLIDE 3", "title": "Slide 3 Title", "desc": "Slide 3 description text", "accent": "{color}"}},
+    {{"badge": "SLIDE 4", "title": "Slide 4 Title", "desc": "Slide 4 description text", "accent": "{color}"}},
+    {{"badge": "SLIDE 5", "title": "SLIDE 5 Title", "desc": "Slide 5 description text", "accent": "{color}"}}
+  ]
+}}
+"""
+    else:
+        prompt = f"""
+You are an expert exam preparation content writer for {target_exam} ({subject}).
+Create highly engaging educational content for the format '{format_type}' based on this topic:
+Chapter: {chapter}
+Concept: {concept}
+Syllabus Notes: {notes}
+
+Requirements:
+1. Write a Hook (0-15s) to capture student attention.
+2. Write Core Content (15-45s) presenting the key concept, formula, or high-yield trick.
+3. Write a Call-to-Action (45-60s) for the FUTRIX App (e.g. "Doubt clearing in under 60 seconds on FUTRIX App!").
+4. Formulate the visual slide text that will be drawn directly on the 1080x1080 graphic card (must be clear, concise, fit on one screen).
+5. Generate a viral caption and 5 trending hashtags.
+
+IMPORTANT: Strictly do NOT write "FUTRIX AI" or "AI" next to Futrix. Use "FUTRIX" or "FUTRIX App" only.
+
+Output strictly a raw JSON block (no markdown, just raw JSON) matching this structure:
+{{
+  "title": "Clean short title",
+  "heading": "Visual Card Heading",
+  "desc": "Visual Card Description (formulas, bullet points, or question layout)",
+  "badge": "{subject} {format_type.upper()}",
+  "caption": "Viral post caption text with footer CTA",
+  "hashtags": "#Hashtag1 #Hashtag2 #Hashtag3 #Hashtag4 #Hashtag5"
+}}
+"""
+
+    if gemini_key:
+        try:
+            print(f"[STAGE 2 - GEMINI] Writing script for {target_exam} {concept}...")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json"}
+            }
+            r = requests.post(url, json=payload, headers=headers, timeout=15)
+            if r.status_code == 200:
+                res_text = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                raw_content = json.loads(res_text)
+                print("[STAGE 2] Script generated successfully!")
+        except Exception as e:
+            print(f"[STAGE 2 ERROR] Gemini failed: {e}. Using procedural fallback.")
+
+    if not raw_content:
+        # Fallback to local procedural generator if Gemini fails or is offline
+        timestamp_seed = int(time.time() * 1000) % 100000
+        if format_type == "carousel":
+            raw_content = {
+                "title": f"{target_exam} revision #{timestamp_seed % 999}",
+                "badge": f"{subject} CAROUSEL",
+                "caption": f"💡 5-Slide revision card for {target_exam} aspirants!\n\nToday we cover {concept} from {chapter}.\n\nPractice similar questions on FUTRIX App! 📲",
+                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix #Revision",
+                "slides": [
+                    {"badge": "HOOK", "title": f"MASTER {concept.upper()}", "desc": f"Learn the shortcut trick for {concept} in 2 minutes.", "accent": color},
+                    {"badge": "CONCEPT", "title": "THEORY CORNER", "desc": f"Focus on this topic:\n{notes}", "accent": color},
+                    {"badge": "FORMULA", "title": "KEY EQUATION", "desc": "Important formula to remember for the exam.", "accent": color},
+                    {"badge": "PYQ", "title": "PRACTICE QUESTION", "desc": f"Solve numericals of {concept} on FUTRIX App.", "accent": color},
+                    {"badge": "CTA", "title": "FUTRIX APP", "desc": "Join India's premium learning platform for under 60s doubt clearance.", "accent": color}
+                ]
+            }
+        else:
+            raw_content = {
+                "title": f"{target_exam} revision #{timestamp_seed % 999}",
+                "heading": f"⚡ {subject}: {chapter.upper()}",
+                "desc": f"Concept: {concept}\nKey Notes:\n• {notes}\n\nMaster this high-yield topic!",
+                "badge": f"{subject} REVISION",
+                "caption": f"💡 Revision alert for {target_exam} aspirants!\n\nToday's high-yield concept is {concept} from {chapter}.\n\nPractice similar questions on FUTRIX App! 📲",
+                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix #Revision"
+            }
+
+    # Stage 3: OpenRouter formatting and sanitization (free models)
+    polished_content = polish_and_structure_content(raw_content, format_type)
+
+    # Save to history file to prevent duplicates
+    save_history(topic_id)
+
+    # Accent color
+    final_item = {
+        "sub_topic_id": f"dyn_{format_type}_{topic_id}_{int(time.time())}",
+        "title": polished_content.get("title", raw_content.get("title", "NEET/JEE")),
+        "heading": polished_content.get("heading", raw_content.get("heading", "FUTRIX STUDY CARD")),
+        "desc": polished_content.get("desc", raw_content.get("desc", "")),
+        "badge": polished_content.get("badge", raw_content.get("badge", "FUTRIX")),
+        "accent": color,
+        "caption": polished_content.get("caption", raw_content.get("caption", "")),
+        "hashtags": raw_content.get("hashtags", "#Futrix #NEET #JEE")
+    }
+
+    if format_type == "carousel":
+        final_item["slides"] = raw_content.get("slides", [])
+
+    return final_item
+
 # ─────────────────────────── ASYNC RENDER WRAPPERS ───────────────────────────
 
 async def render_playwright_carousel_deck(past_topics=None):
     """Render 5-slide carousel deck using Pillow (no browser needed)."""
-    selected_pillar = select_non_duplicate_item(SYLLABUS_PILLARS, past_topics)
-    slides_data = selected_pillar["slides"]
+    item = await generate_smart_pipeline_content("carousel", past_topics)
+    slides_data = item["slides"]
     slide_paths = []
     for idx, slide in enumerate(slides_data, 1):
         path = render_carousel_slide_pil(
@@ -846,50 +1014,43 @@ async def render_playwright_carousel_deck(past_topics=None):
             slide["accent"], idx, total=5
         )
         slide_paths.append(path)
-    return slide_paths, slide_paths[0], selected_pillar
+    return slide_paths, slide_paths[0], item
 
 async def render_blog_post_image(topic_str="", past_topics=None):
-    title = topic_str if topic_str else "Why Socratic AI Guidance Outperforms Rote Memorization in NEET & JEE 2027"
-    intro = "Competitive exam prep is undergoing a massive shift. Traditional coaching is being replaced by sub-60s instant AI doubt resolution."
-    points = [
-        "Instant Doubt Resolution: Eliminating student bottlenecks within 60 seconds.",
-        "Adaptive Spaced Revision: SuperMemo-2 algorithm schedules review before memory decay.",
-        "Gamified Rank XP: All-India leaderboards driving student consistency.",
-    ]
+    item = await generate_smart_pipeline_content("blog", past_topics)
     path = render_card_pil(
-        "OFFICIAL BLOG ARTICLE", title,
-        intro + "\n\n" + "\n".join(f"• {p}" for p in points),
-        "BLOG ARTICLE", "#34D399", width=1200, height=630
+        item["title"], item["heading"], item["desc"],
+        item["badge"], item["accent"], width=1200, height=630
     )
-    return path, "blog_general"
+    return path, item
 
 async def render_quiz_question_card(past_topics=None):
-    item = select_non_duplicate_item(QUIZ_POOLS, past_topics, format_type="quiz")
+    item = await generate_smart_pipeline_content("quiz", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_formula_cheatsheet_card(past_topics=None):
-    item = select_non_duplicate_item(FORMULA_POOLS, past_topics, format_type="formula")
+    item = await generate_smart_pipeline_content("formula", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_meme_card(past_topics=None):
-    item = select_non_duplicate_item(MEME_POOLS, past_topics, format_type="meme")
+    item = await generate_smart_pipeline_content("meme", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_roadmap_card(past_topics=None):
-    item = select_non_duplicate_item(ROADMAP_POOLS, past_topics, format_type="roadmap")
+    item = await generate_smart_pipeline_content("roadmap", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_news_alert_card(past_topics=None):
-    item = select_non_duplicate_item(NEWS_POOLS, past_topics, format_type="news")
+    item = await generate_smart_pipeline_content("news", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_casestudy_card(past_topics=None):
-    item = select_non_duplicate_item(CASESTUDY_POOLS, past_topics, format_type="casestudy")
+    item = await generate_smart_pipeline_content("casestudy", past_topics)
     path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
