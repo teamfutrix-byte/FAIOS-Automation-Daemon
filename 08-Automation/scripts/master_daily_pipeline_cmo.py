@@ -538,14 +538,20 @@ def poll_telegram_updates():
     global last_update_id
     print("🚀 FAIOS Master Pipeline (Multi-Stage Dynamic Engine) Started...")
     
-    # Clear historic updates at startup
+    # Clear historic updates at startup ONLY if there is a large backlog (> 10 updates)
     try:
-        init_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?offset=-1&limit=1"
+        init_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?limit=100"
         req = urllib.request.Request(init_url)
         res = json.loads(urllib.request.urlopen(req).read())
         if res.get('ok') and res.get('result'):
-            last_update_id = res['result'][0]['update_id']
-            print(f"[STARTUP] Acknowledged & cleared past Telegram updates up to offset: {last_update_id}")
+            updates = res['result']
+            if len(updates) > 10:
+                last_update_id = updates[-1]['update_id']
+                print(f"[STARTUP] Large backlog detected ({len(updates)} updates). Cleared up to offset: {last_update_id}")
+            else:
+                if updates:
+                    last_update_id = updates[0]['update_id'] - 1
+                print(f"[STARTUP] Small backlog of {len(updates)} updates. Keeping them for processing!")
     except Exception as err:
         print("[STARTUP ERROR] Could not clear telegram updates backlog:", err)
 
