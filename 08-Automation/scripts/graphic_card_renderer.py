@@ -126,6 +126,42 @@ def _wrap_text(text, font, max_width, draw):
         lines.append(' '.join(current))
     return lines
 
+def _draw_fitted_heading(draw, x, y, text, font, max_width, fill):
+    """
+    Draw a single-line heading. If the text width exceeds max_width,
+    dynamically scale down the font size. If it still exceeds max_width,
+    truncate it with an ellipsis.
+    """
+    if not hasattr(font, 'path') or not font.path:
+        draw.text((x, y), text, font=font, fill=fill)
+        return
+
+    current_size = font.size
+    current_font = font
+    
+    # Scale down font size until it fits (down to size 20)
+    while current_size > 20:
+        bbox = draw.textbbox((0, 0), text, font=current_font)
+        w = bbox[2] - bbox[0]
+        if w <= max_width:
+            break
+        current_size -= 2
+        try:
+            current_font = ImageFont.truetype(font.path, current_size)
+        except Exception:
+            break
+
+    # If it still doesn't fit, truncate with ellipsis
+    while len(text) > 5:
+        bbox = draw.textbbox((0, 0), text + "...", font=current_font)
+        w = bbox[2] - bbox[0]
+        if w <= max_width:
+            text = text + "..."
+            break
+        text = text[:-1]
+
+    draw.text((x, y), text, font=current_font, fill=fill)
+
 # ─────────────────────────── CARD RENDERER ───────────────────────────────────
 
 def render_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1",
@@ -325,7 +361,7 @@ def render_formula_card_pil(title, heading, body_desc, badge_text, accent_hex="#
     draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
 
     head_font = _find_font(34)
-    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+    _draw_fitted_heading(draw, PAD + 110, PAD + 18, heading, head_font, 830 - bw, (248, 250, 252))
 
     formulas = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
     card_top = PAD + 110
@@ -391,7 +427,7 @@ def render_meme_card_pil(title, heading, body_desc, badge_text, accent_hex="#636
     draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
 
     head_font = _find_font(34)
-    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+    _draw_fitted_heading(draw, PAD + 110, PAD + 18, heading, head_font, 830 - bw, (248, 250, 252))
 
     lines = body_desc.split('\n')
     expectation_text = ""
@@ -481,7 +517,7 @@ def render_roadmap_card_pil(title, heading, body_desc, badge_text, accent_hex="#
     draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
 
     head_font = _find_font(34)
-    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+    _draw_fitted_heading(draw, PAD + 110, PAD + 18, heading, head_font, 830 - bw, (248, 250, 252))
 
     steps = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
     card_top = PAD + 110
@@ -628,7 +664,7 @@ def render_casestudy_card_pil(title, heading, body_desc, badge_text, accent_hex=
     draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
 
     head_font = _find_font(34)
-    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+    _draw_fitted_heading(draw, PAD + 110, PAD + 18, heading, head_font, 830 - bw, (248, 250, 252))
 
     lines = [strip_emojis(line).replace("•", "").replace("-", "").strip() for line in body_desc.split('\n') if line.strip()]
     
