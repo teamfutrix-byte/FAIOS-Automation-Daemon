@@ -46,7 +46,7 @@ Raw Data:
                 "Content-Type": "application/json"
             }
             payload = {
-                "model": "google/gemma-2-9b-it:free",
+                "model": "openrouter/free",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.2
             }
@@ -61,30 +61,29 @@ Raw Data:
                 cleaned_json = json.loads(res_content.strip())
                 print("[OPENROUTER] Structural formatting successful!")
                 return cleaned_json
+            else:
+                print(f"[OPENROUTER] Failed formatting with status {r.status_code}: {r.text[:200]}")
         except Exception as e:
             print(f"[OPENROUTER ERROR] Failed: {e}. Falling back to Gemini...")
-
+ 
     # 2. Fallback to Gemini API
     if gemini_key:
         try:
             print("[GEMINI FALLBACK] Formatting payload using Gemini API...")
-            url = f"https://generativelapid.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             headers = {"Content-Type": "application/json"}
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"responseMimeType": "application/json"}
             }
             r = requests.post(url, json=payload, headers=headers, timeout=12)
-            # Try official endpoint if fallback custom host fails
-            if r.status_code != 200:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-                r = requests.post(url, json=payload, headers=headers, timeout=12)
-                
             if r.status_code == 200:
                 res_text = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
                 cleaned_json = json.loads(res_text)
                 print("[GEMINI FALLBACK] Structural formatting successful!")
                 return cleaned_json
+            else:
+                print(f"[GEMINI FALLBACK] Failed formatting with status {r.status_code}: {r.text[:200]}")
         except Exception as e:
             print(f"[GEMINI FALLBACK ERROR] Formatting failed: {e}")
             

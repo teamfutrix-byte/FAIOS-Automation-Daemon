@@ -1383,8 +1383,8 @@ async def generate_smart_pipeline_content(format_type, past_topics=None):
     }
     color = COLOR_MAP.get(subject.upper(), "#6366F1")
 
-    # Stage 2: Google Gemini script writer
     gemini_key = os.environ.get("GEMINI_API_KEY")
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
     raw_content = None
 
     format_instructions = ""
@@ -1492,6 +1492,7 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
 }}
 """
 
+    # Try direct Gemini first
     if gemini_key:
         try:
             print(f"[STAGE 2 - GEMINI] Writing script for {target_exam} {concept}...")
@@ -1505,9 +1506,39 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
             if r.status_code == 200:
                 res_text = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
                 raw_content = json.loads(res_text)
-                print("[STAGE 2] Script generated successfully!")
+                print("[STAGE 2] Script generated successfully via Gemini!")
+            else:
+                print(f"[STAGE 2] Gemini returned status {r.status_code}: {r.text[:200]}")
         except Exception as e:
-            print(f"[STAGE 2 ERROR] Gemini failed: {e}. Using procedural fallback.")
+            print(f"[STAGE 2 ERROR] Gemini failed: {e}")
+
+    # Fallback to OpenRouter for script generation if Gemini fails or returns non-200
+    if not raw_content and openrouter_key:
+        try:
+            print(f"[STAGE 2 - OPENROUTER FALLBACK] Writing script using OpenRouter free tier...")
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {openrouter_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "openrouter/free",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3
+            }
+            r = requests.post(url, json=payload, headers=headers, timeout=18)
+            if r.status_code == 200:
+                res_content = r.json()["choices"][0]["message"]["content"].strip()
+                if res_content.startswith("```"):
+                    res_content = res_content.split("```")[1]
+                    if res_content.startswith("json"):
+                        res_content = res_content[4:]
+                raw_content = json.loads(res_content.strip())
+                print("[STAGE 2] Script generated successfully via OpenRouter fallback!")
+            else:
+                print(f"[STAGE 2] OpenRouter fallback returned status {r.status_code}: {r.text[:200]}")
+        except Exception as e:
+            print(f"[STAGE 2 ERROR] OpenRouter fallback failed: {e}")
 
     if not raw_content:
         # Fallback to local procedural generator if Gemini fails or is offline
