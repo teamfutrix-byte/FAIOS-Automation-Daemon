@@ -68,6 +68,24 @@ def _find_font_regular(size):
                 pass
     return ImageFont.load_default()
 
+def strip_emojis(text):
+    """Strip emojis and non-BMP characters from text to prevent ugly box glyphs in PIL."""
+    if not text:
+        return ""
+    res = []
+    for char in text:
+        o = ord(char)
+        # Filter out emojis, transport/map symbols, and other special characters
+        if o > 0xFFFF or (0x1F000 <= o <= 0x1F9FF) or (0x2600 <= o <= 0x27BF) or (0x1F600 <= o <= 0x1F64F):
+            continue
+        res.append(char)
+    # Clean double spaces and leading/trailing punctuation
+    cleaned = "".join(res).strip()
+    # Remove leading lightning bolts or general emoji fallbacks
+    for lead in ["⚡", "⚫", "🔴", "🟢", "🔵", "🟡", "📝", "📄", "😂", "🗺", "❓", "🚨", "📈"]:
+        cleaned = cleaned.replace(lead, "")
+    return cleaned.strip()
+
 # ─────────────────────────── GRADIENT HELPER ─────────────────────────────────
 
 def _hex_to_rgb(hex_color):
@@ -187,6 +205,488 @@ def render_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1",
               font=footer_font, fill=accent_rgb)
 
     out_path = os.path.join(TEMP_DIR, f"card_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_quiz_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1", width=1080, height=1080) -> str:
+    """Render a dedicated Quiz card with a question block and 4 choice blocks."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+    
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, accent_rgb)
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
+
+    lines = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
+    question_text = ""
+    options = []
+    for line in lines:
+        if line.lower().startswith(('a)', 'b)', 'c)', 'd)', 'a.', 'b.', 'c.', 'd.')):
+            options.append(line)
+        else:
+            if question_text:
+                question_text += " " + line
+            else:
+                question_text = line
+
+    if not options and len(lines) >= 5:
+        question_text = lines[0]
+        options = lines[1:5]
+
+    card_top = PAD + 110
+    q_box_height = 200
+    _draw_rounded_rect(draw, (PAD, card_top, width - PAD, card_top + q_box_height), 24, (30, 41, 59), outline=accent_rgb, width=3)
+    
+    q_font = _find_font(34)
+    q_lines = _wrap_text(question_text or "Question:", q_font, width - 2*PAD - 80, draw)
+    qy = card_top + 35
+    for q_line in q_lines[:3]:
+        draw.text((PAD + 40, qy), q_line, font=q_font, fill=(248, 250, 252))
+        qy += 44
+
+    opt_y = card_top + q_box_height + 40
+    opt_font = _find_font_regular(30)
+    
+    grid_coords = [
+        (PAD, opt_y, width//2 - 20, opt_y + 160),
+        (width//2 + 20, opt_y, width - PAD, opt_y + 160),
+        (PAD, opt_y + 200, width//2 - 20, opt_y + 360),
+        (width//2 + 20, opt_y + 200, width - PAD, opt_y + 360)
+    ]
+    
+    for idx, opt in enumerate(options[:4]):
+        x0, y0, x1, y1 = grid_coords[idx]
+        is_highlighted = (idx == 1)
+        bg_fill = (45, 55, 72) if is_highlighted else (17, 24, 39)
+        border_col = accent_rgb if is_highlighted else (75, 85, 99)
+        
+        _draw_rounded_rect(draw, (x0, y0, x1, y1), 20, bg_fill, outline=border_col, width=3)
+        
+        opt_text_col = (255, 255, 255) if is_highlighted else (209, 213, 219)
+        opt_lines = _wrap_text(opt, opt_font, (x1 - x0 - 40), draw)
+        oy = y0 + 35
+        for o_line in opt_lines[:2]:
+            draw.text((x0 + 30, oy), o_line, font=opt_font, fill=opt_text_col)
+            oy += 38
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX PYQ CHALLENGE", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=accent_rgb)
+
+    out_path = os.path.join(TEMP_DIR, f"quiz_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_formula_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1", width=1080, height=1080) -> str:
+    """Render a dedicated formula cheat sheet card with structured math cards."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, accent_rgb)
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
+
+    head_font = _find_font(34)
+    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+
+    formulas = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
+    card_top = PAD + 110
+    
+    card_y = card_top + 30
+    panel_height = 190
+    title_font = _find_font(28)
+    formula_font = _find_font(38)
+
+    for idx, form in enumerate(formulas[:3]):
+        _draw_rounded_rect(draw, (PAD, card_y, width - PAD, card_y + panel_height), 20, (30, 41, 59), outline=(*accent_rgb, 120), width=3)
+        _draw_rounded_rect(draw, (PAD, card_y, PAD + 12, card_y + panel_height), 20, accent_rgb)
+        
+        parts = form.split(':')
+        name_text = parts[0].strip() if len(parts) > 0 else f"Formula {idx+1}"
+        equation_text = parts[1].strip() if len(parts) > 1 else ""
+        
+        if not equation_text:
+            name_text = "Key Formula"
+            equation_text = form
+            
+        draw.text((PAD + 40, card_y + 25), name_text, font=title_font, fill=accent_rgb)
+        _draw_rounded_rect(draw, (PAD + 40, card_y + 70, width - PAD - 40, card_y + 155), 10, (15, 23, 42))
+        draw.text((PAD + 60, card_y + 88), equation_text, font=formula_font, fill=(255, 255, 255))
+        
+        card_y += panel_height + 40
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX FORMULA SHEET", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=accent_rgb)
+
+    out_path = os.path.join(TEMP_DIR, f"formula_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_meme_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1", width=1080, height=1080) -> str:
+    """Render a dedicated Meme reality-check card with Expectation vs Reality split-panels."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, accent_rgb)
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
+
+    head_font = _find_font(34)
+    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+
+    lines = body_desc.split('\n')
+    expectation_text = ""
+    reality_text = ""
+    current_mode = "expectation"
+    
+    for line in lines:
+        if "reality" in line.lower():
+            current_mode = "reality"
+            continue
+        elif "expectation" in line.lower():
+            current_mode = "expectation"
+            continue
+            
+        clean_line = line.replace("EXPECTATION:", "").replace("REALITY:", "").strip()
+        if clean_line:
+            if current_mode == "expectation":
+                expectation_text += " " + clean_line
+            else:
+                reality_text += " " + clean_line
+
+    expectation_text = strip_emojis(expectation_text)
+    reality_text = strip_emojis(reality_text)
+
+    card_top = PAD + 110
+    panel_h = 320
+    
+    exp_y = card_top + 40
+    _draw_rounded_rect(draw, (PAD, exp_y, width - PAD, exp_y + panel_h), 24, (15, 23, 42), outline=(22, 163, 74), width=4)
+    label_font = _find_font(28)
+    _draw_rounded_rect(draw, (PAD + 40, exp_y - 20, PAD + 280, exp_y + 20), 10, (22, 163, 74))
+    draw.text((PAD + 60, exp_y - 12), "EXPECTATION", font=label_font, fill=(255, 255, 255))
+    
+    txt_font = _find_font(32)
+    exp_lines = _wrap_text(expectation_text or "Plan to study 10 hours.", txt_font, width - 2*PAD - 80, draw)
+    ty = exp_y + 60
+    for el in exp_lines[:4]:
+        draw.text((PAD + 40, ty), el, font=txt_font, fill=(248, 250, 252))
+        ty += 42
+
+    real_y = exp_y + panel_h + 80
+    _draw_rounded_rect(draw, (PAD, real_y, width - PAD, real_y + panel_h), 24, (15, 23, 42), outline=(220, 38, 38), width=4)
+    _draw_rounded_rect(draw, (PAD + 40, real_y - 20, PAD + 240, real_y + 20), 10, (220, 38, 38))
+    draw.text((PAD + 60, real_y - 12), "REALITY", font=label_font, fill=(255, 255, 255))
+    
+    real_lines = _wrap_text(reality_text or "Reels scrolling and sleeping.", txt_font, width - 2*PAD - 80, draw)
+    ty = real_y + 60
+    for rl in real_lines[:4]:
+        draw.text((PAD + 40, ty), rl, font=txt_font, fill=(248, 250, 252))
+        ty += 42
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX STUDENT MEME", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=accent_rgb)
+
+    out_path = os.path.join(TEMP_DIR, f"meme_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_roadmap_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1", width=1080, height=1080) -> str:
+    """Render a Chapter Roadmap with timeline tracks and checkboxes."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, accent_rgb)
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
+
+    head_font = _find_font(34)
+    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+
+    steps = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
+    card_top = PAD + 110
+
+    line_x = PAD + 60
+    draw.line([(line_x, card_top + 50), (line_x, height - PAD - 150)], fill=(75, 85, 99), width=6)
+
+    step_y = card_top + 40
+    step_gap = 160
+    step_font = _find_font(26)
+    details_font = _find_font_regular(22)
+
+    for idx, step in enumerate(steps[:4]):
+        node_color = accent_rgb if idx < 2 else (75, 85, 99)
+        draw.ellipse([(line_x - 16, step_y + 10, line_x + 16, step_y + 42)], fill=node_color, outline=(255, 255, 255), width=2)
+        
+        box_left = line_x + 50
+        _draw_rounded_rect(draw, (box_left, step_y, width - PAD, step_y + 120), 16, (30, 41, 59), outline=(*node_color, 120), width=2)
+        
+        parts = step.split(':')
+        week_label = parts[0].strip() if len(parts) > 0 else f"STEP {idx+1}"
+        details_text = parts[1].strip() if len(parts) > 1 else ""
+        
+        if not details_text:
+            week_label = f"STEP {idx+1}"
+            details_text = step
+
+        draw.text((box_left + 30, step_y + 20), week_label, font=step_font, fill=accent_rgb)
+        
+        dt_lines = _wrap_text(details_text, details_font, width - box_left - 80, draw)
+        dty = step_y + 60
+        for dtl in dt_lines[:2]:
+            draw.text((box_left + 30, dty), dtl, font=details_font, fill=(186, 200, 218))
+            dty += 28
+
+        cb_x = width - PAD - 60
+        is_checked = (idx < 2)
+        cb_border = accent_rgb if is_checked else (100, 116, 139)
+        _draw_rounded_rect(draw, (cb_x, step_y + 40, cb_x + 35, step_y + 75), 6, fill=(15, 23, 42) if not is_checked else accent_rgb, outline=cb_border, width=2)
+        if is_checked:
+            draw.line([(cb_x + 10, step_y + 57), (cb_x + 16, step_y + 64)], fill=(0, 0, 0), width=3)
+            draw.line([(cb_x + 16, step_y + 64), (cb_x + 26, step_y + 48)], fill=(0, 0, 0), width=3)
+
+        step_y += step_gap
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX CHAPTER ROADMAP", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=accent_rgb)
+
+    out_path = os.path.join(TEMP_DIR, f"roadmap_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_news_alert_card_pil(title, heading, body_desc, badge_text, accent_hex="#EF4444", width=1080, height=1080) -> str:
+    """Render an urgent news bulletin card with alert borders and warnings."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, (239, 68, 68))
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(255, 255, 255))
+
+    card_top = PAD + 110
+    banner_h = 130
+    _draw_rounded_rect(draw, (PAD, card_top, width - PAD, card_top + banner_h), 24, (239, 68, 68))
+    
+    banner_font = _find_font(46)
+    draw.text((PAD + 60, card_top + 38), "URGENT NTA ADVISORY", font=banner_font, fill=(255, 255, 255))
+
+    _draw_rounded_rect(draw, (PAD, card_top + banner_h + 30, width - PAD, height - PAD - 90), 24, (30, 41, 59), outline=(239, 68, 68), width=4)
+
+    bullets = [strip_emojis(line).replace("•", "").replace("-", "").strip() for line in body_desc.split('\n') if line.strip()]
+    bx = PAD + 50
+    by = card_top + banner_h + 80
+    bullet_font = _find_font(30)
+
+    for idx, bull in enumerate(bullets[:4]):
+        draw.ellipse([(bx, by + 5, bx + 22, by + 27)], fill=(239, 68, 68))
+        draw.text((bx + 7, by + 4), "!", font=_find_font(18), fill=(255, 255, 255))
+        
+        lines = _wrap_text(bull, bullet_font, width - bx - 120, draw)
+        by_text = by
+        for line in lines[:2]:
+            draw.text((bx + 45, by_text), line, font=bullet_font, fill=(241, 245, 249))
+            by_text += 38
+        
+        by += 105
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX EXAM ALERTS", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=(239, 68, 68))
+
+    out_path = os.path.join(TEMP_DIR, f"news_{int(time.time() * 1000)}.png")
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def render_casestudy_card_pil(title, heading, body_desc, badge_text, accent_hex="#10B981", width=1080, height=1080) -> str:
+    """Render a premium student success case study showing before vs after scores."""
+    title = strip_emojis(title)
+    heading = strip_emojis(heading)
+    badge_text = strip_emojis(badge_text)
+
+    accent_rgb = _hex_to_rgb(accent_hex)
+    img = _create_gradient_background(width, height, (15, 23, 42), (2, 4, 8))
+    draw = ImageDraw.Draw(img)
+    PAD = 60
+
+    try:
+        if os.path.exists(FAVICON_PATH):
+            logo = Image.open(FAVICON_PATH).convert("RGBA")
+            logo.thumbnail((90, 90))
+            img.paste(logo, (PAD, PAD), logo)
+    except Exception:
+        pass
+
+    badge_font = _find_font(26)
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=badge_font)
+    bw = badge_bbox[2] - badge_bbox[0] + 48
+    bh = badge_bbox[3] - badge_bbox[1] + 24
+    _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, (16, 185, 129))
+    draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
+
+    head_font = _find_font(34)
+    draw.text((PAD + 110, PAD + 18), heading, font=head_font, fill=(248, 250, 252))
+
+    lines = [strip_emojis(line).replace("•", "").replace("-", "").strip() for line in body_desc.split('\n') if line.strip()]
+    
+    student_name = "Siddharth from Patna"
+    before_score = "320"
+    after_score = "640"
+    strategy_text = "Daily 20 mins active doubt solving on FUTRIX App."
+
+    for line in lines:
+        if "student" in line.lower():
+            student_name = line.split(":")[-1].strip()
+        elif "before" in line.lower():
+            before_score = "".join(filter(str.isdigit, line)) or "320"
+        elif "after" in line.lower():
+            after_score = "".join(filter(str.isdigit, line)) or "640"
+        elif "strategy" in line.lower():
+            strategy_text = line.split(":")[-1].strip()
+
+    card_top = PAD + 110
+    board_y = card_top + 40
+    board_h = 240
+
+    _draw_rounded_rect(draw, (PAD, board_y, width - PAD, board_y + board_h), 24, (30, 41, 59), outline=(16, 185, 129), width=3)
+    
+    profile_font = _find_font(28)
+    draw.text((PAD + 40, board_y + 20), f"STUDENT: {student_name}", font=profile_font, fill=(16, 185, 129))
+
+    circle_y = board_y + 80
+    draw.ellipse([(PAD + 100, circle_y, PAD + 240, circle_y + 140)], fill=(239, 68, 68))
+    draw.text((PAD + 130, circle_y + 35), before_score, font=_find_font(42), fill=(255, 255, 255))
+    draw.text((PAD + 135, circle_y + 90), "BEFORE", font=_find_font(18), fill=(255, 255, 255))
+
+    draw.line([(width//2 - 50, circle_y + 70), (width//2 + 50, circle_y + 70)], fill=(156, 163, 175), width=8)
+    draw.polygon([(width//2 + 50, circle_y + 50), (width//2 + 50, circle_y + 90), (width//2 + 90, circle_y + 70)], fill=(156, 163, 175))
+
+    draw.ellipse([(width - PAD - 240, circle_y, width - PAD - 100, circle_y + 140)], fill=(16, 185, 129))
+    draw.text((width - PAD - 210, circle_y + 35), after_score, font=_find_font(42), fill=(0, 0, 0))
+    draw.text((width - PAD - 200, circle_y + 90), "AFTER", font=_find_font(18), fill=(0, 0, 0))
+
+    strat_y = board_y + board_h + 40
+    _draw_rounded_rect(draw, (PAD, strat_y, width - PAD, height - PAD - 90), 24, (17, 24, 39), outline=(75, 85, 99), width=2)
+    
+    draw.text((PAD + 40, strat_y + 25), "SUCCESS STRATEGY:", font=_find_font(28), fill=(16, 185, 129))
+    
+    strat_font = _find_font_regular(28)
+    strat_lines = _wrap_text(strategy_text, strat_font, width - 2*PAD - 80, draw)
+    sy = strat_y + 75
+    for sl in strat_lines[:6]:
+        draw.text((PAD + 40, sy), sl, font=strat_font, fill=(241, 245, 249))
+        sy += 38
+
+    footer_y = height - PAD - 60
+    draw.line([(PAD, footer_y - 20), (width - PAD, footer_y - 20)], fill=(255, 255, 255, 30), width=2)
+    footer_font = _find_font(24)
+    draw.text((PAD, footer_y - 5), "FUTRIX CASE STUDY", font=footer_font, fill=(100, 116, 139))
+    draw.text((width - PAD - 200, footer_y - 5), "FUTRIX APP", font=footer_font, fill=(16, 185, 129))
+
+    out_path = os.path.join(TEMP_DIR, f"casestudy_{int(time.time() * 1000)}.png")
     img.save(out_path, "PNG")
     return out_path
 
@@ -1027,13 +1527,35 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
                 ]
             }
         else:
+            if format_type == "quiz":
+                desc_text = f"Q: Which factor shifts this {concept} equilibrium to the right?\n\nA) Increase Temperature\nB) Decrease Pressure\nC) Add Catalyst\nD) Remove Reactant"
+                badge_text = f"{subject} QUIZ"
+            elif format_type == "formula":
+                desc_text = f"1. Equilibrium Constant: K = [Products]/[Reactants]\n2. Reaction Quotient: Q = [Products]_t/[Reactants]_t\n3. Relation: dG = dG0 + RT ln(Q)"
+                badge_text = f"{subject} FORMULA"
+            elif format_type == "meme":
+                desc_text = "EXPECTATION:\n'I will memorize all equilibrium constants today' 🚀\n\nREALITY:\n*Forgets the basic definition of Kp vs Kc in exam* 😭"
+                badge_text = f"{subject} MEME"
+            elif format_type == "roadmap":
+                desc_text = "WEEK 1: Learn Le Chatelier's Principle (12% weight)\nWEEK 2: Solve pH & Buffer solutions PYQs\nWEEK 3: Study Solubility Product (Ksp) tricks"
+                badge_text = f"{subject} ROADMAP"
+            elif format_type == "news":
+                desc_text = "🚨 NTA ADVISORY:\n• Numerical calculations must be rounded to nearest integer\n• No scratch sheets allowed outside designated desks"
+                badge_text = "NTA NEWS"
+            elif format_type == "casestudy":
+                desc_text = "STUDENT: Amit from Kota\n• Before: Stuck at 40 marks in Chemistry\n• After: Boosted to 95 marks in 30 days\n• Strategy: Active recall sheets on FUTRIX App!"
+                badge_text = "SUCCESS STORY"
+            else:
+                desc_text = f"Concept: {concept}\nKey Notes:\n• {notes}\n\nMaster this high-yield topic!"
+                badge_text = f"{subject} REVISION"
+
             raw_content = {
-                "title": f"{target_exam} revision #{timestamp_seed % 999}",
+                "title": f"{target_exam} {format_type.upper()}",
                 "heading": f"⚡ {subject}: {chapter.upper()}",
-                "desc": f"Concept: {concept}\nKey Notes:\n• {notes}\n\nMaster this high-yield topic!",
-                "badge": f"{subject} REVISION",
+                "desc": desc_text,
+                "badge": badge_text,
                 "caption": f"💡 Revision alert for {target_exam} aspirants!\n\nToday's high-yield concept is {concept} from {chapter}.\n\nPractice similar questions on FUTRIX App! 📲",
-                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix #Revision"
+                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix"
             }
 
     # Stage 3: OpenRouter formatting and sanitization (free models)
@@ -1084,32 +1606,32 @@ async def render_blog_post_image(topic_str="", past_topics=None):
 
 async def render_quiz_question_card(past_topics=None):
     item = await generate_smart_pipeline_content("quiz", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_quiz_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_formula_cheatsheet_card(past_topics=None):
     item = await generate_smart_pipeline_content("formula", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_formula_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_meme_card(past_topics=None):
     item = await generate_smart_pipeline_content("meme", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_meme_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_roadmap_card(past_topics=None):
     item = await generate_smart_pipeline_content("roadmap", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_roadmap_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_news_alert_card(past_topics=None):
     item = await generate_smart_pipeline_content("news", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_news_alert_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 async def render_casestudy_card(past_topics=None):
     item = await generate_smart_pipeline_content("casestudy", past_topics)
-    path = render_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
+    path = render_casestudy_card_pil(item["title"], item["heading"], item["desc"], item["badge"], item["accent"])
     return path, item
 
 
