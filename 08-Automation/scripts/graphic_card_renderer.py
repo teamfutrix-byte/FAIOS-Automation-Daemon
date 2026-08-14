@@ -351,9 +351,9 @@ def render_quiz_card_pil(title, heading, body_desc, badge_text, accent_hex="#636
     
     for idx, opt in enumerate(options[:4]):
         x0, y0, x1, y1 = grid_coords[idx]
-        is_highlighted = (idx == 1)
-        bg_fill = (45, 55, 72) if is_highlighted else (17, 24, 39)
-        border_col = accent_rgb if is_highlighted else (75, 85, 99)
+        is_highlighted = False
+        bg_fill = (17, 24, 39)
+        border_col = (75, 85, 99)
         
         _draw_rounded_rect(draw, (x0, y0, x1, y1), 20, bg_fill, outline=border_col, width=3)
         
@@ -1470,7 +1470,9 @@ async def generate_smart_pipeline_content(format_type, past_topics=None):
         format_instructions = f"""
 Format-Specific Guidelines for QUIZ:
 - The 'desc' field MUST be formatted as a multiple choice question with 4 options (A, B, C, D) and a clear question statement.
-- Do NOT make it a general text description. It must be an interactive multiple-choice question.
+- Do NOT indicate which option is correct on the visual card itself. Keep options A, B, C, and D looking identical.
+- The 'caption' MUST ask viewers/students to comment their answer (e.g. "What do you think is the correct option? Comment your answer below (A, B, C, or D)! 👇").
+- The 'caption' MUST announce: "⏰ Correct answer will be revealed in the comments after 24 hours!"
 - Example structure for 'desc':
 "Q: In a monohybrid cross, what is the phenotypic ratio in the F2 generation?\\n\\nA) 1:2:1\\nB) 3:1\\nC) 9:3:3:1\\nD) 1:1"
 """
@@ -1570,7 +1572,8 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
   "desc": "Visual Card Description (formulas, bullet points, or question layout)",
   "badge": "{subject} {format_type.upper()}",
   "caption": "Viral post caption text with footer CTA",
-  "hashtags": "#Hashtag1 #Hashtag2 #Hashtag3 #Hashtag4 #Hashtag5"
+  "hashtags": "#Hashtag1 #Hashtag2 #Hashtag3 #Hashtag4 #Hashtag5",
+  "correct_option": "B" // STRICTLY REQUIRED FOR QUIZ: must be the correct option letter (A, B, C, or D). Use null for other formats.
 }}
 """
 
@@ -1578,7 +1581,7 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
     if gemini_key:
         try:
             print(f"[STAGE 2 - GEMINI] Writing script for {target_exam} {concept}...")
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={gemini_key}"
             headers = {"Content-Type": "application/json"}
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -1668,7 +1671,8 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
                 "desc": desc_text,
                 "badge": badge_text,
                 "caption": f"💡 Revision alert for {target_exam} aspirants!\n\nToday's high-yield concept is {concept} from {chapter}.\n\nPractice similar questions on FUTRIX App! 📲",
-                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix"
+                "hashtags": f"#{subject.capitalize()} #{target_exam.replace(' ', '')} #ExamPrep #Futrix",
+                "correct_option": "B" if format_type == "quiz" else ""
             }
 
     # Stage 3: OpenRouter formatting and sanitization (free models)
@@ -1686,7 +1690,8 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
         "badge": polished_content.get("badge", raw_content.get("badge", "FUTRIX")),
         "accent": color,
         "caption": polished_content.get("caption", raw_content.get("caption", "")),
-        "hashtags": raw_content.get("hashtags", "#Futrix #NEET #JEE")
+        "hashtags": raw_content.get("hashtags", "#Futrix #NEET #JEE"),
+        "correct_option": polished_content.get("correct_option", raw_content.get("correct_option", ""))
     }
 
     if format_type == "carousel":

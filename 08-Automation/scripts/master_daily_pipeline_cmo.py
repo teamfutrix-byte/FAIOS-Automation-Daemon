@@ -353,13 +353,15 @@ def dispatch_single_card_format(fmt_name, async_render_func, target_chat_id=None
         hashtags_str = f"{subject_tags} #Futrix #EdTech #StudySmart #ExamPrep"
 
     asset_id = f"{fmt_name}_{int(time.time()) % 1000000}"
+    correct_option = item.get('correct_option', '')
     current_draft_asset = {
         'asset_id': asset_id,
         'slides': [card_path],
         'pdf': card_path,
         'title': title_badge,
         'caption': caption_text + SOCIAL_CTA_FOOTER,
-        'hashtags': hashtags_str
+        'hashtags': hashtags_str,
+        'correct_option': correct_option
     }
 
     reply_markup = {
@@ -472,13 +474,15 @@ def execute_platform_schedule_with_date(days_offset, platform, asset_id, is_blog
             with open(file_path, "rb") as f:
                 media_b64 = base64.b64encode(f.read()).decode('utf-8')
 
+        correct_opt = current_draft_asset.get('correct_option', '') if current_draft_asset else ''
+        ans_prefix = f"ans{correct_opt}_" if correct_opt else ""
         for p in target_platforms:
             peak_time = BEST_VIRAL_TIMES.get(p, '18:00 IST')
             scheduled_post_time = f"{date_str} {peak_time}"
             try:
                 update_google_sheets({
                     'action': 'ADD_SCHEDULED_POST',
-                    'post_id': f"post_{p.lower()}_{int(time.time())}",
+                    'post_id': f"post_{p.lower()}_{ans_prefix}{int(time.time())}",
                     'platform': p,
                     'post_time': scheduled_post_time,
                     'caption': caption,
@@ -487,7 +491,8 @@ def execute_platform_schedule_with_date(days_offset, platform, asset_id, is_blog
                     'file_name': f"futrix_{asset_id}{file_ext}",
                     'mime_type': mime_type,
                     'approval_status': 'APPROVED',
-                    'published': False
+                    'published': False,
+                    'correct_option': correct_opt
                 })
             except Exception as err:
                 print("Google Sheets & Drive Sync Error:", err)

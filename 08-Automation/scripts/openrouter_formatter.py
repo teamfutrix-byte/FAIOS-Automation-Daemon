@@ -29,7 +29,8 @@ Ensure that:
   "heading": "Clean Card Heading",
   "desc": "Clean Card Body Description (fit for drawing on image)",
   "badge": "Clean Badge Text",
-  "caption": "Viral Caption with Footer CTA and 5 Hashtags"
+  "caption": "Viral Caption with Footer CTA and 5 Hashtags",
+  "correct_option": "B" // The correct option letter (A, B, C, or D) if format is quiz, else null or omitted.
 }}
 
 Raw Data:
@@ -70,7 +71,7 @@ Raw Data:
     if gemini_key:
         try:
             print("[GEMINI FALLBACK] Formatting payload using Gemini API...")
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={gemini_key}"
             headers = {"Content-Type": "application/json"}
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -93,5 +94,6 @@ Raw Data:
         "heading": raw_data.get("heading", "FUTRIX STUDY CARD"),
         "desc": raw_data.get("desc", ""),
         "badge": raw_data.get("badge", "FUTRIX"),
-        "caption": raw_data.get("caption", "")
+        "caption": raw_data.get("caption", ""),
+        "correct_option": raw_data.get("correct_option", "")
     }
