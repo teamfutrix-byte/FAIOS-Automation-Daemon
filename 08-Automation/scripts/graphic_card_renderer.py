@@ -312,7 +312,8 @@ def render_quiz_card_pil(title, heading, body_desc, badge_text, accent_hex="#636
     _draw_rounded_rect(draw, (width - PAD - bw, PAD, width - PAD, PAD + bh), 30, accent_rgb)
     draw.text((width - PAD - bw + 24, PAD + 12), badge_text, font=badge_font, fill=(0, 0, 0))
 
-    lines = [strip_emojis(line) for line in body_desc.split('\n') if line.strip()]
+    body_desc_clean = body_desc.replace('\\n', '\n')
+    lines = [strip_emojis(line) for line in body_desc_clean.split('\n') if line.strip()]
     question_text = ""
     options = []
     for line in lines:
@@ -1682,11 +1683,15 @@ Output strictly a raw JSON block (no markdown, just raw JSON) matching this stru
     save_history(topic_id)
 
     # Accent color
+    desc_val = polished_content.get("desc", raw_content.get("desc", ""))
+    if isinstance(desc_val, str):
+        desc_val = desc_val.replace('\\n', '\n')
+        
     final_item = {
         "sub_topic_id": f"dyn_{format_type}_{topic_id}_{int(time.time())}",
         "title": polished_content.get("title", raw_content.get("title", "NEET/JEE")),
         "heading": polished_content.get("heading", raw_content.get("heading", "FUTRIX STUDY CARD")),
-        "desc": polished_content.get("desc", raw_content.get("desc", "")),
+        "desc": desc_val,
         "badge": polished_content.get("badge", raw_content.get("badge", "FUTRIX")),
         "accent": color,
         "caption": polished_content.get("caption", raw_content.get("caption", "")),

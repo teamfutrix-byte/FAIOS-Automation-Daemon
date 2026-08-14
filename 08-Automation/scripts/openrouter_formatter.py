@@ -23,7 +23,8 @@ Ensure that:
 1. No 'FUTRIX AI' or 'AI' suffix next to Futrix is present (change to 'FUTRIX' or 'FUTRIX App').
 2. Captions have smooth spacing, emotional touchpoints, and clear footer CTAs.
 3. Keep the exact 5 viral hashtags at the bottom.
-4. Output strictly a clean JSON block (no markdown wrappers like ```json, just raw JSON) matching this structure:
+4. For 'quiz' format, the 'desc' field MUST contain the full multiple choice question statement and all four option lines (A, B, C, D) exactly. Do NOT summarize, shorten, or erase the options or question statement!
+5. Output strictly a clean JSON block (no markdown wrappers like ```json, just raw JSON) matching this structure:
 {{
   "title": "Clean Title",
   "heading": "Clean Card Heading",
