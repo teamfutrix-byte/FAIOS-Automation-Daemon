@@ -162,6 +162,47 @@ def _draw_fitted_heading(draw, x, y, text, font, max_width, fill):
 
     draw.text((x, y), text, font=current_font, fill=fill)
 
+def _draw_fitted_equation(draw, box_bbox, text, font, fill):
+    """
+    Draw equation text centered inside the formula box.
+    First tries to scale down the font size so it fits on a single line.
+    If it still doesn't fit, wraps the text into multiple lines at a smaller font size.
+    """
+    x0, y0, x1, y1 = box_bbox
+    max_width = x1 - x0 - 40  # 20px padding on each side
+    x = x0 + 20
+    
+    if not hasattr(font, 'path') or not font.path:
+        draw.text((x, y0 + 18), text, font=font, fill=fill)
+        return
+
+    current_size = font.size
+    current_font = font
+    
+    # Try to fit on a single line by scaling down
+    while current_size > 22:
+        bbox = draw.textbbox((0, 0), text, font=current_font)
+        w = bbox[2] - bbox[0]
+        if w <= max_width:
+            text_h = bbox[3] - bbox[1]
+            y = y0 + (y1 - y0 - text_h) / 2 - 2
+            draw.text((x, y), text, font=current_font, fill=fill)
+            return
+        current_size -= 2
+        try:
+            current_font = ImageFont.truetype(font.path, current_size)
+        except Exception:
+            break
+
+    # If it still doesn't fit on a single line, wrap it
+    lines = _wrap_text(text, current_font, max_width, draw)
+    line_height = current_size + 4
+    total_h = len(lines) * line_height
+    y = y0 + (y1 - y0 - total_h) / 2
+    for line in lines[:2]: # Max 2 lines
+        draw.text((x, y), line, font=current_font, fill=fill)
+        y += line_height
+
 # ─────────────────────────── CARD RENDERER ───────────────────────────────────
 
 def render_card_pil(title, heading, body_desc, badge_text, accent_hex="#6366F1",
@@ -384,8 +425,9 @@ def render_formula_card_pil(title, heading, body_desc, badge_text, accent_hex="#
             equation_text = form
             
         draw.text((PAD + 40, card_y + 25), name_text, font=title_font, fill=accent_rgb)
-        _draw_rounded_rect(draw, (PAD + 40, card_y + 70, width - PAD - 40, card_y + 155), 10, (15, 23, 42))
-        draw.text((PAD + 60, card_y + 88), equation_text, font=formula_font, fill=(255, 255, 255))
+        box_bbox = (PAD + 40, card_y + 70, width - PAD - 40, card_y + 155)
+        _draw_rounded_rect(draw, box_bbox, 10, (15, 23, 42))
+        _draw_fitted_equation(draw, box_bbox, equation_text, formula_font, (255, 255, 255))
         
         card_y += panel_height + 40
 
@@ -1435,9 +1477,11 @@ Format-Specific Guidelines for QUIZ:
     elif format_type == "formula":
         format_instructions = """
 Format-Specific Guidelines for FORMULA:
-- The 'desc' field MUST be a high-yield formula cheat sheet listing 3-4 key formulas with their parameters defined.
+- The 'desc' field MUST list exactly 3 key formulas, one per line.
+- Each line MUST follow the 'Name: Formula' structure with a colon ':'.
+- Do NOT add a 'Where...' or parameter definition line at the bottom. Keep it strictly to 3 formulas. Put all variable definitions in the post 'caption' instead.
 - Example structure for 'desc':
-"1. Coulomb Force: F = k*q1*q2/r^2\\n2. Electric Field: E = F/q\\n3. Potential: V = k*q/r\\nWhere k = 1/(4*pi*e0) = 9x10^9 N m^2/C^2"
+"Coulomb Force: F = k * q1 * q2 / r^2\\nElectric Field: E = F / q\\nElectric Potential: V = k * q / r"
 """
     elif format_type == "meme":
         format_instructions = """
@@ -1477,11 +1521,13 @@ Concept: {concept}
 Syllabus Notes: {notes}
 
 Requirements:
-- Slide 1: Introduction/Hook to grab attention.
-- Slide 2: Core theory or concept breakdown.
-- Slide 3: Practical application or formula shortcut.
-- Slide 4: Real sample PYQ question to solve.
-- Slide 5: CTA (Join FUTRIX App for sub-60s doubt clearance).
+1. Write a Hook (0-15s) that is hyper-relatable for JEE/NEET aspirants (e.g., Kota/coaching center struggles, silly calculation mistakes, sign convention traps, revision panic, mock test anxiety).
+2. Write Core Content (15-45s) presenting the high-yield concept, shortcut trick, or step-by-step logic in a super clear, easy-to-memorize format.
+3. Write a Call-to-Action (45-60s) for the FUTRIX App (e.g., "Clear your NEET/JEE doubts in under 60 seconds on FUTRIX App!").
+4. Formulate the visual slide text ('desc') that will be drawn directly on the card. Keep it mathematically accurate, clean, structured, and under 250 characters. For formula sheets, ensure names and formulas are separated by colons ':'.
+5. Generate a viral, engaging caption (under 500 characters) using clean bullet points, relevant emojis, and relatable student lingo. Add 5 trending hashtags.
+
+IMPORTANT: Strictly do NOT write "FUTRIX AI" or "AI" next to Futrix. Use "FUTRIX" or "FUTRIX App" only.
 
 Output strictly a raw JSON block (no markdown, just raw JSON) matching this structure:
 {{
@@ -1509,11 +1555,11 @@ Syllabus Notes: {notes}
 {format_instructions}
 
 Requirements:
-1. Write a Hook (0-15s) to capture student attention.
-2. Write Core Content (15-45s) presenting the key concept, formula, or high-yield trick.
-3. Write a Call-to-Action (45-60s) for the FUTRIX App (e.g. "Doubt clearing in under 60 seconds on FUTRIX App!").
-4. Formulate the visual slide text that will be drawn directly on the 1080x1080 graphic card (must be clear, concise, fit on one screen).
-5. Generate a viral caption and 5 trending hashtags.
+1. Write a Hook (0-15s) that is hyper-relatable for JEE/NEET aspirants (e.g., Kota/coaching center struggles, silly calculation mistakes, sign convention traps, revision panic, mock test anxiety).
+2. Write Core Content (15-45s) presenting the high-yield concept, shortcut trick, or step-by-step logic in a super clear, easy-to-memorize format.
+3. Write a Call-to-Action (45-60s) for the FUTRIX App (e.g., "Clear your NEET/JEE doubts in under 60 seconds on FUTRIX App!").
+4. Formulate the visual slide text ('desc') that will be drawn directly on the card. Keep it mathematically accurate, clean, structured, and under 250 characters. For formula sheets, ensure names and formulas are separated by colons ':'.
+5. Generate a viral, engaging caption (under 500 characters) using clean bullet points, relevant emojis, and relatable student lingo. Add 5 trending hashtags.
 
 IMPORTANT: Strictly do NOT write "FUTRIX AI" or "AI" next to Futrix. Use "FUTRIX" or "FUTRIX App" only.
 
